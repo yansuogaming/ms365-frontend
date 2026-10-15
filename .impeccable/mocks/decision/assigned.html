@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Lobby Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Archivo,system-ui,sans-serif;background:#eceae4;color:#1c1d1f;display:grid;grid-template-columns:264px 1fr}
+.rail{background:#1c1d1f;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 7px);color:#d9d7cf;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 20px;font:700 15px Archivo;color:#f2f1ec;letter-spacing:.02em}
+.brand i{width:26px;height:26px;border:2px solid #b48a3c;border-radius:4px}
+.board{margin:4px 14px 14px;border:3px solid #b48a3c;border-radius:3px;padding:10px 12px;background:#141516}
+.board small{display:block;font:600 10px 'Archivo Narrow';letter-spacing:.18em;color:#b48a3c}
+.board b{display:block;margin-top:6px;font:700 19px/1.15 'Archivo Narrow';letter-spacing:.06em;color:#f2f1ec;text-transform:uppercase}
+.board span{display:block;margin-top:4px;font:500 11px 'Archivo Narrow';letter-spacing:.08em;color:#8f8c84}
+nav{padding:4px 10px;overflow:hidden}
+.g{margin:14px 10px 6px;font:600 10.5px 'Archivo Narrow';letter-spacing:.2em;color:#8f8c84;display:flex;align-items:center;gap:8px}
+.g:before{content:"";width:10px;height:3px;background:var(--c)}
+a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:4px;font-size:13.5px;color:#d9d7cf;text-decoration:none}
+a:before{content:"";width:14px;height:14px;border:1.5px solid #6f6c66;border-radius:3px}
+a.on{background:#f2f1ec;color:#1c1d1f;font-weight:600}
+a.on:before{border-color:#1c1d1f}
+.me{margin-top:auto;padding:14px 20px;border-top:1px solid #2c2d30;font-size:12px;color:#8f8c84;display:flex;justify-content:space-between}
+main{display:flex;flex-direction:column}
+header{height:60px;display:flex;align-items:center;gap:14px;padding:0 32px;border-bottom:1px solid #d6d3ca;background:#f4f2ec}
+header h1{font:700 22px 'Archivo Narrow';letter-spacing:.04em;text-transform:uppercase}
+header .crumb{font-size:12px;color:#77746c;letter-spacing:.06em}
+.sp{flex:1}
+.pill{height:34px;padding:0 12px;border:1px solid #d0ccc1;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:12.5px;background:#fff}
+.dot{width:8px;height:8px;border-radius:50%;background:#2f8a57}
+.content{padding:26px 32px;display:grid;grid-template-columns:1fr 400px;gap:20px}
+.kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d6d3ca;background:#fff;border-radius:4px}
+.k{padding:18px 20px;border-right:1px solid #e6e3da}
+.k:last-child{border:0}
+.k small{font:600 10.5px 'Archivo Narrow';letter-spacing:.18em;color:#77746c;text-transform:uppercase}
+.k b{display:block;margin-top:8px;font:700 34px 'Archivo Narrow';font-variant-numeric:tabular-nums}
+.k span{font-size:12px;color:#77746c}
+.card{background:#fff;border:1px solid #d6d3ca;border-radius:4px}
+.card h2{padding:14px 18px;border-bottom:1px solid #e6e3da;font:700 13px 'Archivo Narrow';letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between}
+.card h2 em{font:500 12px Archivo;letter-spacing:0;text-transform:none;color:#1c1d1f;font-style:normal;border:1px solid #d0ccc1;padding:3px 10px;border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:600 10.5px 'Archivo Narrow';letter-spacing:.16em;color:#77746c;padding:10px 18px;border-bottom:1px solid #e6e3da}
+td{padding:12px 18px;border-bottom:1px solid #efece5}
+td.m{font-variant-numeric:tabular-nums;color:#4a4842}
+.st{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:3px;background:#e3f1e8;color:#23704a}
+.st.off{background:#f6e3df;color:#a2321f}
+.row{padding:16px 18px;border-bottom:1px solid #efece5;display:flex;gap:12px;align-items:flex-start}
+.row b{font-size:14px}
+.row p{font-size:12.5px;color:#66635c;margin-top:4px;line-height:1.45}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;background:#f7ecd6;color:#8a5c0e;margin-left:6px}
+.btn{margin-left:auto;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:4px;background:#1c1d1f;color:#f2f1ec;white-space:nowrap}
+.ack{background:#fff8e6;border-left:3px solid #b48a3c}
+</style></head><body>
+<aside class="rail">
+  <div class="brand"><i></i>M365 ADMIN</div>
+  <div class="board"><small>NOW IN TENANT</small><b>CONTOSO.ONMICROSOFT.COM</b><span>CONTOSO SCHOOL DISTRICT</span></div>
+  <nav>
+    <div class="g" style="--c:#b48a3c">QUICK ACTIONS</div>
+    <a>Create mail</a><a>Check code</a><a>2FA code</a><a>Reuse users</a><a>Bulk delete</a>
+    <div class="g" style="--c:#f2f1ec">OVERVIEW</div>
+    <a class="on">Dashboard</a>
+    <div class="g" style="--c:#4f8fd6">IDENTITY</div>
+    <a>Users</a><a>Password reset</a><a>Groups</a>
+    <div class="g" style="--c:#2f8a57">BILLING</div>
+    <a>Product</a><a>Licenses</a>
+  </nav>
+  <div class="me"><span>operator@contoso</span><span>Sign out</span></div>
+</aside>
+<main>
+  <header><h1>Dashboard</h1><span class="crumb">OVERVIEW</span><span class="sp"></span>
+    <span class="pill"><span class="dot"></span>API online</span><span class="pill">Search  Ctrl K</span></header>
+  <div class="content">
+    <div class="kpis">
+      <div class="k"><small>Total users</small><b>1,284</b><span>+12 this week</span></div>
+      <div class="k"><small>Licenses used</small><b>1,190</b><span>58 available</span></div>
+      <div class="k"><small>Groups</small><b>46</b><span>3 mail-enabled</span></div>
+      <div class="k"><small>Managed devices</small><b>212</b><span>4 non-compliant</span></div>
+    </div>
+    <div class="card"><h2>Recent users <em>View all</em></h2>
+      <table><tr><th>NAME</th><th>EMAIL</th><th>STATUS</th><th>CREATED</th></tr>
+      <tr><td>Megan Bowen</td><td>meganb@contoso.com</td><td><span class="st">Active</span></td><td class="m">Oct 14, 2026 09:12</td></tr>
+      <tr><td>Alex Wilber</td><td>alexw@contoso.com</td><td><span class="st">Active</span></td><td class="m">Oct 13, 2026 16:40</td></tr>
+      <tr><td>Lynne Robbins</td><td>lynner@contoso.com</td><td><span class="st off">Blocked</span></td><td class="m">Oct 12, 2026 11:05</td></tr>
+      <tr><td>Diego Siciliani</td><td>diegos@contoso.com</td><td><span class="st">Active</span></td><td class="m">Oct 10, 2026 08:31</td></tr>
+      <tr><td>Isaiah Langer</td><td>isaiahl@contoso.com</td><td><span class="st">Active</span></td><td class="m">Oct 09, 2026 14:22</td></tr>
+      </table></div>
+    <div class="card"><h2>Directory sync</h2>
+      <div class="row"><div><b>Tenant directory sync</b><span class="tag">Disabled</span><p>onPremisesSyncEnabled is off for this tenant.</p></div><span class="btn">Turn on</span></div>
+      <div class="row"><div><b>Password sync</b><span class="tag">Unknown</span><p>Backend has not reported passwordSyncEnabled yet.</p></div></div>
+      <div class="row ack"><div><b>Bulk delete finished</b><p>18 of 18 users removed. Acknowledge to clear.</p></div><span class="btn">OK</span></div>
+    </div>
+  </div>
+</main>
+</body></html>

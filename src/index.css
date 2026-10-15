@@ -1,0 +1,179 @@
+@import "@fontsource-variable/archivo";
+@import "@fontsource/archivo-narrow/600.css";
+@import "@fontsource/archivo-narrow/700.css";
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Lobby Directory world.
+ * The rail is felt in both themes; only the work area flips between
+ * warm grey paper (light) and graphite (dark).
+ */
+:root {
+  --ground: #eceae4;
+  --surface: #f8f7f3;
+  --surface-sunk: #e4e1d9;
+  --ink: #1c1d1f;
+  --ink-muted: #5c5952;
+  --ink-faint: #7a776f;
+  --line: #d3cfc5;
+  --line-soft: #e3e0d7;
+  --focus: #9a7128;
+
+  --felt: #1c1d1f;
+  --felt-raised: #26272a;
+  --felt-seam: #2e2f33;
+  --letter: #f2f1ec;
+  --letter-muted: #a9a69d;
+  --brass: #b48a3c;
+  --brass-bright: #d2a656;
+
+  --ok: #23704a;
+  --ok-soft: #dcefe3;
+  --warn: #8a5c0e;
+  --warn-soft: #f6ead0;
+  --danger: #a2321f;
+  --danger-soft: #f6e1dc;
+  --info: #2d5f9e;
+  --info-soft: #dfe9f6;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --ground: #18191b;
+  --surface: #202124;
+  --surface-sunk: #141516;
+  --ink: #ecebe6;
+  --ink-muted: #aaa79f;
+  --ink-faint: #8b8880;
+  --line: #34363a;
+  --line-soft: #2a2c2f;
+  --focus: #d2a656;
+
+  --felt: #0f1011;
+  --felt-raised: #1b1c1e;
+  --felt-seam: #26272a;
+
+  --ok: #6fcf98;
+  --ok-soft: #1c3327;
+  --warn: #e3b55a;
+  --warn-soft: #3a2f17;
+  --danger: #f08a77;
+  --danger-soft: #3d201b;
+  --info: #8db8ef;
+  --info-soft: #1d2b3e;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-board: "Archivo Narrow", "Archivo Variable", ui-sans-serif, sans-serif;
+
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-focus: var(--focus);
+
+  --color-felt: var(--felt);
+  --color-felt-raised: var(--felt-raised);
+  --color-felt-seam: var(--felt-seam);
+  --color-letter: var(--letter);
+  --color-letter-muted: var(--letter-muted);
+  --color-brass: var(--brass);
+  --color-brass-bright: var(--brass-bright);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --radius-board: 4px;
+}
+
+@layer base {
+  html {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brass) 38%, transparent);
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--brass);
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+}
+
+/* Grooved felt: fine horizontal channels, as on a letterboard. */
+.felt {
+  background-color: var(--felt);
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgb(255 255 255 / 0.035) 0 1px,
+    transparent 1px 7px
+  );
+  scrollbar-color: var(--felt-seam) transparent;
+}
+
+/* Signature move: letters press into the board one by one. */
+@keyframes letter-press {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35em) scale(1.08);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.letter-press {
+  display: inline-block;
+  animation: letter-press 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 28ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-press {
+    animation: none;
+  }
+}

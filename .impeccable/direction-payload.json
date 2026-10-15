@@ -1,0 +1,133 @@
+{
+  "title": "Choose the visual world for M365 Admin",
+  "question": "The roll assigned Lobby Directory. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Lobby Directory",
+      "kicker": "THE ROLL",
+      "lineage": "black felt letterboards listing the tenants in an office-building lobby",
+      "thesis": "The sidebar is the building's tenant board: you always read which tenant you are standing in.",
+      "palette": ["#1c1d1f", "#f2f1ec", "#b48a3c", "#eceae4", "#2f8a57", "#c2412d"],
+      "materials": ["grooved black felt", "white pressed-in letters", "brushed brass frame"],
+      "viewport": "Felt-black sidebar rail with the active tenant set in white condensed caps inside a brass-edged strip; light warm-grey work area with KPI row, recent users table and sync status panel.",
+      "risk": "Literal reading of the word tenant; turns kitsch if letter texture leaks into the work area.",
+      "raised": [
+        {"from": "challenger-transit", "raise": "Each nav group owns one colour tick used everywhere that group's pages appear, so colour does wayfinding, not decoration."},
+        {"from": "challenger-gateboard", "raise": "Results of bulk actions hold their highlight until the operator acknowledges them."},
+        {"from": "challenger-folio", "raise": "Every page shares one fixed header frame and scale, so pages compare at a glance."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html"
+    },
+    {
+      "id": "model-pick",
+      "label": "Hanging File Drawer",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Pendaflex hanging folders with coloured plastic index tabs",
+      "thesis": "Each tenant is a folder pulled forward; nav groups are its coloured index tabs.",
+      "palette": ["#2e5e4a", "#e4d6b4", "#f7f3ea", "#2b6cb0", "#d9a21b", "#b8432f"],
+      "materials": ["manila stock", "translucent plastic tabs", "green pressboard"],
+      "viewport": "Pressboard-green sidebar with nav groups marked by coloured tab chips; manila-tinted header carries the active tenant like a folder label.",
+      "risk": "Tab colours can read toy-like if they spread beyond markers.",
+      "html": ".impeccable/mocks/decision/model-pick.html"
+    },
+    {
+      "id": "challenger-console",
+      "label": "Dark-first Console",
+      "verdict": "competitive",
+      "lineage": "dark-first developer consoles",
+      "thesis": "Graphite panels split by hairline seams; destructive actions sit apart on purpose.",
+      "palette": ["#17191c", "#2a2d31", "#e6e6e3", "#4ec9b0", "#dcdcaa", "#f14c4c"],
+      "materials": ["graphite", "one-pixel seams", "monospaced figures"],
+      "viewport": "Graphite shell, persistent panels, tenant and status in a top strip, Bulk delete isolated with outline style.",
+      "case": "Holds clarity and fits a technical ops team; loses on tenant identification, nothing says which tenant you are in.",
+      "risk": "Generic dark admin look; eye strain on long daytime shifts.",
+      "html": ".impeccable/mocks/decision/challenger-console.html",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-dark-first-developer-console.webp",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-dark-first-developer-console-hero.webp"
+    },
+    {
+      "id": "challenger-splitflap",
+      "label": "Split-flap Concourse",
+      "verdict": "competitive",
+      "lineage": "rail concourse split-flap departure boards",
+      "thesis": "Status rows flip in place like a departure board; columns never move.",
+      "palette": ["#121212", "#f5f5f0", "#8a8f94", "#f0a400", "#9c2b23"],
+      "materials": ["matte black flaps", "white paint letters", "brushed steel frame"],
+      "viewport": "Steel-grey shell; recent users and sync status set as a fixed-column board with amber delayed rows.",
+      "case": "Strong for live status; competes with the assigned board on identification, weaker on calm daily navigation.",
+      "risk": "Per-character motion becomes noise on a screen used all day.",
+      "html": ".impeccable/mocks/decision/challenger-splitflap.html",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    },
+    {
+      "id": "challenger-transit",
+      "label": "Midnight Transit Diagram",
+      "verdict": "declined",
+      "lineage": "metropolitan rail maps",
+      "thesis": "Nav groups as coloured lines with station stops.",
+      "palette": ["#14214a", "#f4f1ea", "#d7332a", "#2f5fd0", "#e9a82a", "#2f9a5c"],
+      "materials": ["enamel", "porcelain ticks"],
+      "viewport": "Midnight-blue rail with group lines.",
+      "case": "Fuses poorly: operators do not think of admin tasks as journeys.",
+      "risk": "Navigation becomes a puzzle.",
+      "kept": "One colour per group, applied consistently.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp"
+    },
+    {
+      "id": "challenger-gateboard",
+      "label": "Boarding Pass & Gate Board",
+      "verdict": "declined",
+      "lineage": "airport gate boards",
+      "thesis": "Changes stay lit until noticed.",
+      "palette": ["#ffffff", "#1a1a1a", "#e85d04"],
+      "materials": ["segmented pass", "monospaced block"],
+      "viewport": "Ranking board of tasks.",
+      "case": "Fuses poorly: admin work is not ordered by departure time.",
+      "risk": "Travel costume.",
+      "kept": "Changed state holds until acknowledged.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board-hero.webp"
+    },
+    {
+      "id": "challenger-folio",
+      "label": "Botanical Folio",
+      "verdict": "declined",
+      "lineage": "botanical plate folios",
+      "thesis": "Same plate, same scale, every stage.",
+      "palette": ["#f3ecdc", "#3c6b3a", "#b3261e"],
+      "materials": ["engraved plates", "sepia rules"],
+      "viewport": "Plate sequence.",
+      "case": "Fuses poorly: no link to tenant administration.",
+      "risk": "Editorial costume on a working screen.",
+      "kept": "One fixed frame and scale across pages.",
+      "hero": "https://impeccable.style/worlds/cards/editorial-sequence-montage-botanical-folio-season-hero.webp"
+    },
+    {
+      "id": "challenger-atlas",
+      "label": "Star Atlas",
+      "verdict": "declined",
+      "lineage": "celestial star charts",
+      "thesis": "Importance as dot size on a fixed ramp.",
+      "palette": ["#0e1a33", "#f2f2ea", "#d9483b"],
+      "materials": ["navy chart", "chalk dots"],
+      "viewport": "Chart field.",
+      "case": "Fuses poorly: no data here is spatial.",
+      "risk": "Decorative night mode.",
+      "kept": "A single fixed ramp for importance.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-star-atlas-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "Microsoft 365 admin standard",
+    "thesis": "The Fluent admin-center look your current screenshots follow, executed at full craft.",
+    "palette": ["#ffffff", "#f5f5f5", "#242424", "#0f6cbd"],
+    "materials": ["Fluent surfaces", "Segoe-style UI type", "soft cards"],
+    "viewport": "White sidebar with grouped nav, light dashboard with KPI cards and tables.",
+    "risk": "Indistinguishable from every M365 tool by design.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}
