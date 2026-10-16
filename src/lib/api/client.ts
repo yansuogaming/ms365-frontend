@@ -1,8 +1,5 @@
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
-// `npm run dev:mock`: answer from the dev-only fake backend. Always false in production builds.
-const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_MOCK === 'true'
-
 export class ApiError extends Error {
   readonly status: number
   readonly code?: string
@@ -35,18 +32,16 @@ export async function apiFetch<T>(path: string, { body, headers, ...init }: Requ
   const payload = body !== undefined ? JSON.stringify(body) : undefined
   let res: Response
   try {
-    res = USE_MOCK
-      ? await (await import('@/mocks/mockApi')).mockFetch(path, { method: init.method, body: payload })
-      : await fetch(`${BASE_URL}${path}`, {
-          ...init,
-          credentials: 'include',
-          headers: {
-            Accept: 'application/json',
-            ...(payload !== undefined ? { 'Content-Type': 'application/json' } : {}),
-            ...headers,
-          },
-          body: payload,
-        })
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        ...(payload !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...headers,
+      },
+      body: payload,
+    })
   } catch {
     throw new ApiError(0, 'Cannot reach the API. Check your connection or the API URL.')
   }
