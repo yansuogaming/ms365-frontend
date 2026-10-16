@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/ui/StateViews'
 import { notify } from '@/components/ui/Toaster'
 import { useGroupOptions, usersApi, useUserMutation } from '../api'
 import type { UserDetail } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 /** Joined groups load on demand (one Graph call per user), then can be changed. */
 export function GroupsTab({ user }: { user: UserDetail }) {
@@ -49,7 +50,7 @@ export function GroupsTab({ user }: { user: UserDetail }) {
         ) : joined.isError ? (
           <ErrorState error={joined.error} onRetry={() => joined.refetch()} />
         ) : joined.isPending ? (
-          <p className="p-4 text-sm text-ink-3">Loading groups…</p>
+          <Loading variant="inline" label="Loading groups…" className="px-4" />
         ) : visible.length === 0 ? (
           <p className="p-4 text-sm text-ink-3">{joined.data?.length ? 'No joined group matches.' : 'Not a member of any group.'}</p>
         ) : (

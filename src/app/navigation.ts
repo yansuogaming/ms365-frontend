@@ -1,6 +1,6 @@
 import {
   Activity, AppWindow, BadgeCheck, Briefcase, Building2, Cloud, CloudCog, Code, CreditCard, Download,
-  Globe, Handshake, History, KeyRound, KeySquare, Laptop, LayoutGrid, Link, Mail, MailSearch,
+  Globe, Handshake, History, KeySquare, Laptop, LayoutGrid, Link, Mail, MailSearch,
   Monitor, MonitorPlay, Network, Package, ScanSearch, Shield, ShieldCheck, Smartphone,
   SquareTerminal, Terminal, UserCog, Users, UsersRound, Waypoints, type LucideIcon,
 } from 'lucide-react'
@@ -28,7 +28,6 @@ export const navigation: NavGroup[] = [
     label: 'Identity',
     items: [
       { label: 'Users', path: '/identity/users', icon: Users },
-      { label: 'Password reset', path: '/identity/password-reset', icon: KeyRound },
       { label: 'Groups', path: '/identity/groups', icon: UsersRound },
     ],
   },

@@ -47,5 +47,5 @@ export function FormDialog({ open, onClose, title, description, submitLabel, onS
   )
 }
 
-/** "Megan Bowen" for one user, "3 users" for many. */
-export const who = (labels: string[]) => (labels.length === 1 ? labels[0] : `${labels.length} users`)
+/** "Megan Bowen" for one item, "3 users" (or "3 groups") for many. */
+export const who = (labels: string[], noun = 'users') => (labels.length === 1 ? labels[0] : `${labels.length} ${noun}`)

@@ -2,9 +2,10 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { formatDateTime, Tag } from '@/components/ui/admin'
 import { Panel } from '@/components/ui/Panel'
-import { EmptyState, ErrorState, SkeletonRows } from '@/components/ui/StateViews'
+import { EmptyState, ErrorState } from '@/components/ui/StateViews'
 import { useRecentUsers } from '../api'
 import type { UserStatus } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 const status: Record<UserStatus, { label: string; tone: 'ok' | 'danger' | 'warn' }> = {
   active: { label: 'Active', tone: 'ok' },
@@ -26,7 +27,7 @@ export function RecentUsers() {
       }
     >
       {isPending ? (
-        <SkeletonRows rows={5} cols={4} />
+        <Loading label="Loading recent users…" />
       ) : isError ? (
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : data.length === 0 ? (

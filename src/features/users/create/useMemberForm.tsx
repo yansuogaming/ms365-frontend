@@ -12,6 +12,7 @@ import { generatePassword, generateUsername, passwordProblem, passwordStyles, ty
 import { useGroupOptions, useOrgProfile, useRoleDefinitions, usersApi, useSkus, useUserMutation } from '../api'
 import { CredentialResults } from '../dialogs/CredentialResults'
 import type { CreateUserRequest } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 type NameMode = 'fixed' | 'username' | 'auto'
 
@@ -266,7 +267,7 @@ export function useMemberForm(onCreated: () => void) {
         {/* fixed height: real tenants have 100+ roles; the list scrolls, not the dialog */}
         <div className="mt-2 max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-paper)] border border-line p-1">
           {roles.isPending ? (
-            <p className="p-3 text-sm text-ink-3">Loading roles…</p>
+            <Loading variant="inline" label="Loading roles…" />
           ) : visibleRoles.length === 0 ? (
             <p className="p-3 text-sm text-ink-3">{roles.data?.length ? `No role matches “${roleSearch}”.` : 'No admin roles loaded for this tenant.'}</p>
           ) : (

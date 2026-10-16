@@ -3,7 +3,7 @@ import { useState, type ChangeEvent } from 'react'
 import { Field } from '@/components/ui/Field'
 import { formatNumber } from '@/components/ui/admin'
 import { reportBulk, usersApi, useUserMutation } from '../api'
-import { FormDialog } from './FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

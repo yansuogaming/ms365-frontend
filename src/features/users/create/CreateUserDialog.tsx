@@ -2,7 +2,7 @@ import { Mail, Send, UserPlus, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Segmented } from '@/components/ui/Segmented'
-import { FormDialog } from '../dialogs/FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 import { useGuestForm } from './useGuestForm'
 import { useMemberForm } from './useMemberForm'
 

@@ -2,6 +2,7 @@ import { Check, Search } from 'lucide-react'
 import { useCallback, useId, useState, type KeyboardEvent, type RefObject } from 'react'
 import { DropdownChevron, dropdownTriggerClass } from './Select'
 import { usePopover } from './usePopover'
+import { Spinner } from './Loader'
 
 export interface MultiOption {
   value: string
@@ -131,7 +132,10 @@ export function MultiSelect({
           )}
           <ul id={`${id}-list`} role="listbox" aria-multiselectable="true" aria-label={label} className="min-h-0 flex-1 overflow-y-auto p-1">
             {loading ? (
-              <li className="px-3 py-2 text-sm text-ink-3">Loading…</li>
+              <li className="flex items-center gap-2.5 px-3 py-2 text-sm text-ink-3">
+                <Spinner size="sm" />
+                Loading…
+              </li>
             ) : visible.length === 0 ? (
               <li className="px-3 py-2 text-sm text-ink-3">{options.length ? `No match for “${query}”.` : emptyText}</li>
             ) : (

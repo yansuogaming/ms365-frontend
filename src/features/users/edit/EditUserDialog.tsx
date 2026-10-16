@@ -1,15 +1,16 @@
 import { Button } from '@/components/ui/Button'
 import { Tabs } from '@/components/ui/Tabs'
-import { ErrorState, LoadingState } from '@/components/ui/StateViews'
+import { ErrorState } from '@/components/ui/StateViews'
 import { useState } from 'react'
 import { useUserDetail } from '../api'
-import { FormDialog } from '../dialogs/FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 import type { UserRow } from '../types'
 import { GroupsTab } from './GroupsTab'
 import { LicenseTab } from './LicenseTab'
 import { ProfileTab, useProfileForm } from './ProfileTab'
 import { RolesTab } from './RolesTab'
 import { SecurityTab } from './SecurityTab'
+import { Loading } from '@/components/ui/Loader'
 
 type Tab = 'profile' | 'security' | 'license' | 'groups' | 'roles'
 
@@ -63,7 +64,7 @@ export function EditUserDialog({ user, onClose }: { user: UserRow; onClose: () =
       <Tabs label="Edit sections" value={tab} onChange={setTab} tabs={tabs} className="-mx-6 -mt-5 px-4" />
 
       {detail.isPending ? (
-        <LoadingState label="Loading user…" />
+        <Loading label="Loading user…" />
       ) : detail.isError ? (
         <ErrorState error={detail.error} onRetry={() => detail.refetch()} />
       ) : (

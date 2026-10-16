@@ -402,3 +402,81 @@ Opened as a dialog from the Users page. Body:
 - Licenses that run out of seats part-way: create the user anyway and report it as an error on that row (e.g. `"Created, but no free seats for Office 365 A1"`), so the operator knows.
 
 Returns `{ "results": CredentialResult[] }` (same shape as reset-password): one row per requested account, `secret` = the password, or `error`. The UI shows them once, with Copy all and CSV, and keeps the last run in memory (not storage) so "Recover" can show it again in the same tab.
+
+## Groups (`/identity/groups`)
+
+### `GET /groups?page=&pageSize=&search=&kind=&sort=`
+Returns `Page<GroupRow>`:
+
+```json
+{ "id": "…", "displayName": "Sales Team", "description": "…" | null, "kind": "Microsoft 365" | "Security" | "Mail-enabled security" | "Distribution", "mail": "…" | null, "membership": "Assigned" | "Dynamic", "createdAt": "ISO" }
+```
+
+- `search` matches name, mail and description.
+- `kind` filters by type (empty = any).
+- `sort`: `displayName:asc|desc` (default `displayName:asc`) or `createdAt:asc|desc`.
+- `kind` comes from Graph: `groupTypes` contains `Unified` → Microsoft 365; otherwise `securityEnabled` + `mailEnabled` → Mail-enabled security, `securityEnabled` only → Security, `mailEnabled` only → Distribution. `membership` is `Dynamic` when `groupTypes` contains `DynamicMembership`.
+
+### `GET /groups/{id}`
+The row plus `mailNickname`, `isAssignableToRole`, `membershipRule` (or `null`), `licenses: [{ skuId, name }]` (group-based licensing), `members` and `owners`: `[{ id, displayName, upn | null, type: "user" | "group" | "device" | "servicePrincipal" }]`. Return every member (the dialog pages them, 8 at a time).
+
+### `POST /groups`
+```json
+{ "kind": "Security" | "Microsoft 365", "displayName": "Sales Team", "description"?: "…", "mailNickname"?: "SalesTeam", "isAssignableToRole": false, "membershipRule"?: "user.department -eq \"Sales\"" }
+```
+- No `mailNickname`: derive it from the name (letters and digits).
+- `membershipRule` set: create a dynamic group (`groupTypes` + `DynamicMembership`, `membershipRuleProcessingState: "On"`). The UI never sends a rule together with `isAssignableToRole: true` (Entra does not allow it).
+- Graph cannot create distribution lists or mail-enabled security groups, so the UI only offers the two kinds above.
+
+Returns the new `GroupRow`. The UI then opens Manage for it.
+
+### `PATCH /groups/{id}`
+`{ "displayName"?, "description"? }`. Returns the updated row.
+
+### Group licenses
+| Endpoint | Body |
+|---|---|
+| `POST /groups/{id}/licenses` | `{ "skuId" }`, Graph `assignLicense` on the group |
+| `DELETE /groups/{id}/licenses/{skuId}` | none |
+
+Not offered for distribution lists.
+
+### Members and owners
+| Endpoint | Body |
+|---|---|
+| `POST /groups/{id}/members` | `{ "ref": "UPN, email or object id" }` |
+| `DELETE /groups/{id}/members/{memberId}` | none |
+| `POST /groups/{id}/owners` | `{ "ref": "…" }` |
+| `DELETE /groups/{id}/owners/{ownerId}` | none |
+
+Resolve `ref` on the server. Errors the UI shows as they are: unknown ref (404), already a member (409), dynamic group (400, "members come from the rule").
+
+### `POST /groups/bulk/delete`
+`{ "ids": string[] }` → `BulkResult` (`failed[].id` set, so the UI keeps the failed ones selected). Microsoft 365 groups go to the deleted items for 30 days; security groups and distribution lists are gone at once. The UI says so in the confirmation.
+
+## Product (`/billing/products`)
+Read-only: the UI lists products and never buys, edits or removes them (that stays in the Microsoft 365 admin center).
+
+### `GET /billing/products?page=&pageSize=&search=&status=`
+Returns `Page<ProductRow>`:
+
+```json
+{
+  "skuId": "…",
+  "name": "Office 365 A1 for faculty",
+  "assigned": 14591,
+  "purchased": 500000,
+  "status": "Active" | "Warning" | "Suspended" | "Disabled" | "Expired",
+  "purchaseDate": "ISO" | null,
+  "renewalDate": "ISO" | null,
+  "purchaseChannel": "Commercial direct" | null,
+  "productType": "License-based" | null,
+  "pricingModel": "Free" | null,
+  "payment": "Free" | null
+}
+```
+
+- `search` matches the product name; `status` filters (empty = any). Sorted by name.
+- `assigned` / `purchased`: Graph `subscribedSkus` `consumedUnits` / `prepaidUnits.enabled`. The UI shows available = purchased − assigned.
+- `status`: from `capabilityStatus` (Enabled → Active, Warning, Suspended, Deleted/LockedOut → Disabled) or the commerce subscription when it has expired.
+- Dates, channel, type, pricing and payment come from the billing/commerce subscription when available; send `null` when unknown (shown as "Not available").

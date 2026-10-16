@@ -2,6 +2,7 @@ import { BadgeCheck, Smartphone, Users, UsersRound, type LucideIcon } from 'luci
 import type { ReactNode } from 'react'
 import { formatNumber } from '@/components/ui/admin'
 import type { DashboardSummary } from '../types'
+import { Spinner } from '@/components/ui/Loader'
 
 function Stat({ icon: Icon, label, value, note }: { icon: LucideIcon; label: string; value: number | null | undefined; note?: ReactNode }) {
   return (
@@ -14,7 +15,9 @@ function Stat({ icon: Icon, label, value, note }: { icon: LucideIcon; label: str
       </div>
       <div>
         {value === undefined ? (
-          <span className="block h-9 w-28 animate-pulse rounded bg-paper-3" />
+          <span role="status" aria-label={`Loading ${label.toLowerCase()}`} className="flex h-[1.6rem] items-center sm:h-[2.1rem]">
+            <Spinner size="sm" />
+          </span>
         ) : (
           <p className="tabular font-display text-[1.6rem] leading-none font-semibold sm:text-[2.1rem]">{value === null ? '—' : formatNumber(value)}</p>
         )}

@@ -4,7 +4,7 @@ import { buttonClass } from '@/components/ui/Button'
 import { ConfirmDialog, errorText, formatNumber, PageHeader } from '@/components/ui/admin'
 import { Pagination } from '@/components/ui/Pagination'
 import { Panel } from '@/components/ui/Panel'
-import { EmptyState, ErrorState, SkeletonRows } from '@/components/ui/StateViews'
+import { EmptyState, ErrorState } from '@/components/ui/StateViews'
 import { notify } from '@/components/ui/Toaster'
 import { useSession } from '@/features/auth/useSession'
 import { useListParams } from '@/lib/hooks/useListParams'
@@ -15,7 +15,7 @@ import { UsersToolbar, type ToolAction } from './components/UsersToolbar'
 import { ResetPasswordDialog, TapResultDialog } from './dialogs/CredentialDialogs'
 import { TAP_DEFAULT_MINUTES } from './dialogs/TapFields'
 import { BulkEditDialog } from './dialogs/BulkEditDialog'
-import { who } from './dialogs/FormDialog'
+import { who } from '@/components/ui/FormDialog'
 import { RenameDialog } from './dialogs/RenameDialog'
 import { LanguageDialog } from './dialogs/SettingDialogs'
 import { TwoFactorDialog } from './dialogs/TwoFactorDialog'
@@ -27,6 +27,7 @@ import { LicenseUsageDialog } from './dialogs/LicenseUsageDialog'
 import { OrgProfileDialog } from './dialogs/OrgProfileDialog'
 import { DeleteFromTxtDialog } from './dialogs/ToolDialogs'
 import type { CredentialResult, UserListQuery, UserRow, UserSort } from './types'
+import { Loading } from '@/components/ui/Loader'
 
 const DEFAULTS = { search: '', status: 'all', license: '', role: '', sort: 'createdAt:desc' }
 
@@ -203,7 +204,7 @@ export function UsersPage() {
         <BulkBar count={selected.size} onAction={onBulk} />
 
         {users.isPending ? (
-          <SkeletonRows rows={8} cols={5} />
+          <Loading label="Loading users…" />
         ) : users.isError && !users.data ? (
           <ErrorState error={users.error} onRetry={() => users.refetch()} />
         ) : rows.length === 0 ? (

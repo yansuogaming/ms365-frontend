@@ -10,7 +10,7 @@ import { countryOptions } from '@/lib/countries'
 import { generatePassword, passwordProblem, passwordStyles, type PasswordStyle } from '@/lib/random'
 import { useGroupOptions, useOrgProfile, usersApi, useSkus, useUserMutation } from '../api'
 import { CredentialResults } from '../dialogs/CredentialResults'
-import { FormDialog } from '../dialogs/FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 import type { BulkCreateRequest, CredentialResult, DisplayNameMode } from '../types'
 
 export const BULK_MAX = 500

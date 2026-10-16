@@ -1,4 +1,4 @@
-import { Crosshair, Download, FileUp, LoaderCircle, Play, Search } from 'lucide-react'
+import { Crosshair, Download, FileUp, Play, Search } from 'lucide-react'
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import { errorText, formatDate, formatDateTime, formatNumber, Modal, Tag } from '@/components/ui/admin'
@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { notify } from '@/components/ui/Toaster'
 import { usersApi, useUsageScan } from '../api'
 import type { UsagePeriod, UsageRow, UsageStatus, UsageSummary } from '../types'
+import { Spinner } from '@/components/ui/Loader'
 
 type Show = 'all' | 'licensed' | UsageStatus
 
@@ -128,7 +129,7 @@ export function LicenseUsageDialog({ onClose }: { onClose: () => void }) {
 
   const badge = running ? (
     <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-coral-wash px-3 text-xs font-semibold text-coral-ink">
-      <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
+      <Spinner size="sm" className="size-4" />
       {job ? `Scanning ${formatNumber(job.progress.scanned)}/${formatNumber(job.progress.total)}` : 'Starting…'}
     </span>
   ) : job?.state === 'failed' ? (

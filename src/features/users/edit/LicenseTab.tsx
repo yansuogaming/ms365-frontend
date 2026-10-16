@@ -5,6 +5,7 @@ import { Tag } from '@/components/ui/admin'
 import { notify } from '@/components/ui/Toaster'
 import { usersApi, useSkus, useUserDetail, useUserMutation } from '../api'
 import type { UserDetail } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 /** Tick plans, then assign or remove them. Assigned plans are marked. */
 export function LicenseTab({ user }: { user: UserDetail }) {
@@ -47,7 +48,7 @@ export function LicenseTab({ user }: { user: UserDetail }) {
 
       <div className="max-h-72 overflow-auto rounded-[var(--radius-paper)] border border-line">
         {skus.isPending ? (
-          <p className="p-4 text-sm text-ink-3">Loading licenses…</p>
+          <Loading variant="inline" label="Loading licenses…" className="px-4" />
         ) : visible.length === 0 ? (
           <p className="p-4 text-sm text-ink-3">{skus.data?.length ? 'No license matches.' : 'No licenses available.'}</p>
         ) : (

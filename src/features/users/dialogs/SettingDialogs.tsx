@@ -3,7 +3,7 @@ import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { reportBulk, usersApi, useUserMutation } from '../api'
 import type { UserRow } from '../types'
-import { FormDialog, who } from './FormDialog'
+import { FormDialog, who } from '@/components/ui/FormDialog'
 
 /** Languages offered for users and the organization (Microsoft 365 display languages), in their own names. */
 export const languages = [

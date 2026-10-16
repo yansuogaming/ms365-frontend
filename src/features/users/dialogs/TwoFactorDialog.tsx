@@ -9,7 +9,7 @@ import { reportBulk, usersApi, useUserMutation } from '../api'
 import type { CredentialResult, TwoFactorMethod, UserRow } from '../types'
 import { tapExplainer, TapFields, tapLifetimeError } from './TapFields'
 import { CredentialResults } from './CredentialResults'
-import { FormDialog, who } from './FormDialog'
+import { FormDialog, who } from '@/components/ui/FormDialog'
 
 /** Help text for each method, from the original console (translated). */
 const tips = {

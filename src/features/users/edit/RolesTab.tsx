@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { notify } from '@/components/ui/Toaster'
 import { useRoleDefinitions, usersApi, useUserMutation } from '../api'
 import type { UserDetail } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 /** Tick the roles the user should hold; saving sends the full set. */
 export function RolesTab({ user }: { user: UserDetail }) {
@@ -37,7 +38,7 @@ export function RolesTab({ user }: { user: UserDetail }) {
 
       <div className="h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-paper)] border border-line p-1">
         {defs.isPending ? (
-          <p className="p-3 text-sm text-ink-3">Loading roles…</p>
+          <Loading variant="inline" label="Loading roles…" />
         ) : visible.length === 0 ? (
           <p className="p-3 text-sm text-ink-3">{defs.data?.length ? `No role matches “${search}”.` : 'No admin roles loaded for this tenant.'}</p>
         ) : (

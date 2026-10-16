@@ -5,10 +5,11 @@ import { ConfirmDialog, formatDate, formatDateTime, formatNumber, Modal, Tag } f
 import { Field } from '@/components/ui/Field'
 import { Pagination } from '@/components/ui/Pagination'
 import { SearchInput } from '@/components/ui/SearchInput'
-import { EmptyState, ErrorState, SkeletonRows } from '@/components/ui/StateViews'
+import { EmptyState, ErrorState } from '@/components/ui/StateViews'
 import { reportBulk, useDeletedUsers, usersApi, useUserMutation } from '../api'
-import { FormDialog } from '../dialogs/FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 import type { DeletedTarget, DeletedUser } from '../types'
+import { Loading } from '@/components/ui/Loader'
 
 const RETENTION_DAYS = 30
 const DAY = 86_400_000
@@ -88,7 +89,7 @@ export function DeletedUsersDialog({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1">
         {deleted.isPending ? (
-          <SkeletonRows rows={5} cols={4} />
+          <Loading label="Loading deleted users…" />
         ) : deleted.isError && !deleted.data ? (
           <ErrorState error={deleted.error} onRetry={() => deleted.refetch()} />
         ) : rows.length === 0 ? (

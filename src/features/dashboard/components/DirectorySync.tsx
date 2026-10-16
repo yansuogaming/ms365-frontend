@@ -5,6 +5,7 @@ import { ConfirmDialog, Tag } from '@/components/ui/admin'
 import { Panel } from '@/components/ui/Panel'
 import { ErrorState } from '@/components/ui/StateViews'
 import { useSetSync, useSyncStatus } from '../api'
+import { Spinner } from '@/components/ui/Loader'
 
 function stateTag(on: boolean | null) {
   if (on === null) return <Tag>Unknown</Tag>
@@ -32,7 +33,7 @@ function SyncRow({ kind, icon: Icon, title, description, value }: RowProps) {
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2 font-semibold">
           {title}
-          {value === undefined ? <span className="h-6 w-20 animate-pulse rounded-full bg-paper-3" /> : stateTag(value)}
+          {value === undefined ? <span role="status" aria-label="Loading" className="flex h-6 items-center"><Spinner size="sm" /></span> : stateTag(value)}
         </p>
         <p className="mt-1 text-sm text-ink-2">{description}</p>
       </div>

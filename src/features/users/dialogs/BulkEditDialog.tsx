@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/Button'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Select } from '@/components/ui/Select'
 import { countryOptions } from '@/lib/countries'
-import { LoadingState } from '@/components/ui/StateViews'
+import { Loading } from '@/components/ui/Loader'
 import { reportBulk, useRoleDefinitions, usersApi, useUserMutation } from '../api'
 import type { BulkEditRequest, SharedField, UserRow } from '../types'
-import { FormDialog } from './FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 
 
 type RoleMode = 'assign' | 'remove' | 'none'
@@ -144,7 +144,7 @@ export function BulkEditDialog({ users, onClose, onDone }: { users: UserRow[]; o
             </div>
             <div className="max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-paper)] border border-line p-1">
               {roles.isPending ? (
-                <LoadingState label="Loading roles…" />
+                <Loading variant="inline" label="Loading roles…" />
               ) : roles.isError ? (
                 <p className="p-3 text-sm text-danger">Couldn’t load roles.</p>
               ) : visibleRoles.length === 0 ? (

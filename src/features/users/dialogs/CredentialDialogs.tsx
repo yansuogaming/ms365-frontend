@@ -9,7 +9,7 @@ import { usersApi, useUserMutation } from '../api'
 import type { CredentialResult, UserRow } from '../types'
 import { CredentialResults } from './CredentialResults'
 import { Modal } from '@/components/ui/admin'
-import { FormDialog } from './FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 
 interface Props {
   users: UserRow[]

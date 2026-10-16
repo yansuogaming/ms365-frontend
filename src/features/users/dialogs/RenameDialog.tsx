@@ -4,7 +4,7 @@ import { Field } from '@/components/ui/Field'
 import { Select } from '@/components/ui/Select'
 import { reportBulk, useOrgProfile, usersApi, useUserMutation } from '../api'
 import type { RenameChange, UserRow } from '../types'
-import { FormDialog } from './FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 
 type Target = 'displayName' | 'upn' | 'both'
 type Method = 'prefix' | 'suffix' | 'replace' | 'set' | 'each'

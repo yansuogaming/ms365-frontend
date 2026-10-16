@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { allNavItems } from './navigation'
 import { ModulePending } from './ModulePending'
-import { NotFound } from './NotFound'
+import { ScreenLoader } from '@/components/ui/Loader'
 import { AppShell } from './shell/AppShell'
 
 /**
@@ -13,6 +13,8 @@ import { AppShell } from './shell/AppShell'
 const builtRoutes: { path: string; lazy: () => Promise<{ Component: React.ComponentType }> }[] = [
   { path: 'dashboard', lazy: () => import('@/features/dashboard/route') },
   { path: 'identity/users', lazy: () => import('@/features/users/route') },
+  { path: 'identity/groups', lazy: () => import('@/features/groups/route') },
+  { path: 'billing/products', lazy: () => import('@/features/products/route') },
 ]
 
 const built = new Set(builtRoutes.map((r) => `/${r.path}`))
@@ -22,11 +24,14 @@ export const router = createBrowserRouter([
   {
     path: '/',
     Component: AppShell,
+    // first load straight onto a lazy page, before its code has arrived
+    HydrateFallback: () => <ScreenLoader label="Loading…" />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       ...builtRoutes,
       ...allNavItems.filter((i) => !built.has(i.path)).map((i) => ({ path: i.path.slice(1), Component: ModulePending })),
-      { path: '*', Component: NotFound },
+      // unknown addresses go to the first page instead of a 404
+      { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },
 ])

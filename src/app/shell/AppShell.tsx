@@ -1,8 +1,9 @@
 import { Menu, Search, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation, useNavigation } from "react-router";
 import { LogoMark } from "@/components/brand/Logo";
+import { RouteProgress, ScreenLoader } from "@/components/ui/Loader";
 import type { Session } from "@/features/auth/types";
 import { useSession } from "@/features/auth/useSession";
 import { findNavItem } from "../navigation";
@@ -88,6 +89,8 @@ export function AppShell() {
     const rail = useRail();
     const [menu, setMenu] = useState(false);
     const [palette, setPalette] = useState(false);
+    // a page's code (lazy route) is loading after a menu click
+    const navigating = useNavigation().state === "loading";
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -110,7 +113,7 @@ export function AppShell() {
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
-    if (isPending) return <ShellLoading />;
+    if (isPending) return <ScreenLoader label="Opening session…" />;
     if (isError || !session)
         return (
             <Navigate to="/login" replace state={{ from: location.pathname }} />
@@ -155,7 +158,7 @@ export function AppShell() {
                             </p>
                         )}
                         <h1 className="truncate text-xl font-semibold">
-                            {current?.label ?? "Not found"}
+                            {current?.label ?? ""}
                         </h1>
                     </div>
 
@@ -177,6 +180,7 @@ export function AppShell() {
                             </kbd>
                         </button>
                     </div>
+                    <RouteProgress active={navigating} />
                 </header>
 
                 <Drawer
@@ -191,19 +195,6 @@ export function AppShell() {
             </div>
 
             <CommandPalette open={palette} onClose={() => setPalette(false)} />
-        </div>
-    );
-}
-
-function ShellLoading() {
-    return (
-        <div className="vinyl grid min-h-dvh place-items-center text-on-cover">
-            <div role="status" className="flex flex-col items-center gap-4">
-                <LogoMark className="size-12 animate-spin [animation-duration:3s]" />
-                <span className="text-sm text-on-cover/70">
-                    Opening session…
-                </span>
-            </div>
         </div>
     );
 }

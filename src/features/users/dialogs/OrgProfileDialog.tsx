@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Field } from '@/components/ui/Field'
 import { Select } from '@/components/ui/Select'
-import { ErrorState, LoadingState } from '@/components/ui/StateViews'
+import { ErrorState } from '@/components/ui/StateViews'
 import { notify } from '@/components/ui/Toaster'
 import { useOrgProfile, usersApi, useUserMutation } from '../api'
 import type { OrgProfile } from '../types'
-import { FormDialog } from './FormDialog'
+import { FormDialog } from '@/components/ui/FormDialog'
 import { languages } from './SettingDialogs'
+import { Loading } from '@/components/ui/Loader'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -113,7 +114,7 @@ export function OrgProfileDialog({ onClose }: { onClose: () => void }) {
   if (org.data) return <OrgForm org={org.data} onClose={onClose} />
   return (
     <FormDialog open onClose={onClose} title="Organization profile" submitLabel="Save" onSubmit={() => {}} disabled size="md">
-      {org.isError ? <ErrorState error={org.error} onRetry={() => org.refetch()} /> : <LoadingState label="Loading organization…" />}
+      {org.isError ? <ErrorState error={org.error} onRetry={() => org.refetch()} /> : <Loading label="Loading organization…" />}
     </FormDialog>
   )
 }
