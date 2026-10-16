@@ -1,8 +1,8 @@
 import {
   Activity, AppWindow, BadgeCheck, Briefcase, Building2, Cloud, CloudCog, Code, CreditCard, Download,
   Globe, Handshake, History, KeyRound, KeySquare, Laptop, LayoutGrid, Link, Mail, MailSearch,
-  Monitor, MonitorPlay, Network, Package, Repeat, ScanSearch, Shield, ShieldCheck, Smartphone, SquareCheck,
-  SquareTerminal, Terminal, TimerReset, Trash2, UserCog, Users, UsersRound, Waypoints, type LucideIcon,
+  Monitor, MonitorPlay, Network, Package, ScanSearch, Shield, ShieldCheck, Smartphone,
+  SquareTerminal, Terminal, UserCog, Users, UsersRound, Waypoints, type LucideIcon,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -18,18 +18,6 @@ export interface NavGroup {
 }
 
 export const navigation: NavGroup[] = [
-  {
-    id: 'quick',
-    label: 'Quick actions',
-    items: [
-      { label: 'Create mail', path: '/quick/create-mail', icon: Mail },
-      { label: 'Check code', path: '/quick/check-code', icon: SquareCheck },
-      { label: '2FA code', path: '/quick/2fa-code', icon: ShieldCheck },
-      { label: 'Reuse users', path: '/quick/reuse-users', icon: Repeat },
-      { label: 'Bulk delete', path: '/quick/bulk-delete', icon: Trash2 },
-      { label: 'Renew pass', path: '/quick/renew-pass', icon: TimerReset },
-    ],
-  },
   {
     id: 'overview',
     label: 'Overview',

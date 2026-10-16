@@ -12,6 +12,9 @@ import { AppShell } from './shell/AppShell'
  */
 const builtRoutes: { path: string; lazy: () => Promise<{ Component: React.ComponentType }> }[] = [
   { path: 'dashboard', lazy: () => import('@/features/dashboard/route') },
+  { path: 'identity/users', lazy: () => import('@/features/users/route') },
+  { path: 'identity/users/bulk-create', lazy: () => import('@/features/users/bulk-create/route') },
+  { path: 'identity/users/deleted', lazy: () => import('@/features/users/deleted/route') },
 ]
 
 const built = new Set(builtRoutes.map((r) => `/${r.path}`))

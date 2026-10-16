@@ -32,12 +32,33 @@ export function RecentUsers() {
       ) : data.length === 0 ? (
         <EmptyState title="No users yet">New accounts created in this tenant will show up here.</EmptyState>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+        <>
+        {/* phones: a compact list */}
+        <ul className="divide-y divide-line sm:hidden">
+          {data.map((u) => (
+            <li key={u.id} className="flex items-start gap-3 px-4 py-3">
+              <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-paper-3 text-xs text-ink-2">
+                {u.displayName.slice(0, 1).toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 truncate font-semibold">{u.displayName}</p>
+                  <Tag tone={status[u.status].tone}>{status[u.status].label}</Tag>
+                </div>
+                <p className="truncate text-sm text-ink-2">{u.upn}</p>
+                <time dateTime={u.createdAt} className="tabular text-xs text-ink-3">
+                  {formatDateTime(u.createdAt)}
+                </time>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto sm:block">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left text-xs font-semibold tracking-wide text-ink-3 uppercase">
                 <th className="px-6 py-3 font-semibold">Name</th>
-                <th className="px-3 py-3 font-semibold">Email</th>
+                <th className="hidden px-3 py-3 font-semibold lg:table-cell">Email</th>
                 <th className="px-3 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 text-right font-semibold">Created</th>
               </tr>
@@ -50,10 +71,13 @@ export function RecentUsers() {
                       <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-paper-3 text-xs text-ink-2">
                         {u.displayName.slice(0, 1).toUpperCase()}
                       </span>
-                      <span className="truncate">{u.displayName}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate">{u.displayName}</span>
+                        <span className="block truncate text-xs font-normal text-ink-3 lg:hidden">{u.upn}</span>
+                      </span>
                     </span>
                   </td>
-                  <td className="max-w-[18rem] truncate px-3 py-3.5 text-ink-2">{u.upn}</td>
+                  <td className="hidden max-w-[18rem] truncate px-3 py-3.5 text-ink-2 lg:table-cell">{u.upn}</td>
                   <td className="px-3 py-3.5">
                     <Tag tone={status[u.status].tone}>{status[u.status].label}</Tag>
                   </td>
@@ -65,6 +89,7 @@ export function RecentUsers() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </Panel>
   )

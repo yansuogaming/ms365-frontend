@@ -24,7 +24,7 @@ function loginErrorMessage(error: unknown) {
 }
 
 // Three workspaces fanned out like cards on a desk, each showing its real tools.
-const fan = ['identity', 'security', 'quick']
+const fan = ['identity', 'security', 'admin']
   .map((id) => navigation.find((g) => g.id === id))
   .filter((g) => g !== undefined)
 const fanPose = [

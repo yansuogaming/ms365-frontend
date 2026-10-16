@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions }: { title: ReactNode; 
         <h1 className="text-3xl font-bold sm:text-4xl">{title}</h1>
         {description && <div className="mt-1.5 max-w-[72ch] text-ink-2">{description}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">{actions}</div>}
     </div>
   )
 }
@@ -48,6 +48,7 @@ export function Modal({
   onClose,
   title,
   description,
+  aside,
   children,
   size = 'md',
 }: {
@@ -55,8 +56,10 @@ export function Modal({
   onClose: () => void
   title: string
   description?: ReactNode
+  /** Shown in the title row next to Close, e.g. a status badge. */
+  aside?: ReactNode
   children?: ReactNode
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const opener = useRef<HTMLElement | null>(null)
@@ -74,7 +77,8 @@ export function Modal({
     }
   }, [open])
 
-  const widths = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl' }
+  // xl is for tools that are almost a page (e.g. License usage): wide, and tall even when empty
+  const widths = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-7xl min-h-[min(46rem,calc(100dvh-2rem))]' }
 
   return (
     <dialog
@@ -86,7 +90,7 @@ export function Modal({
         if (e.target === e.currentTarget) onClose()
       }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className={`paper-shadow m-auto w-[calc(100%-2rem)] ${widths[size]} max-h-[calc(100dvh-2rem)] rounded-[var(--radius-paper)] border border-line bg-paper p-0 text-ink backdrop:bg-[oklch(0.2_0.04_262/0.55)] backdrop:backdrop-blur-[2px]`}
+      className={`paper-shadow m-auto w-[calc(100%-2rem)] overflow-hidden ${widths[size]} max-h-[calc(100dvh-2rem)] rounded-[var(--radius-paper)] border border-line bg-paper p-0 text-ink backdrop:bg-[oklch(0.2_0.04_262/0.55)] backdrop:backdrop-blur-[2px]`}
     >
       {open && (
         <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
@@ -97,6 +101,7 @@ export function Modal({
               </h2>
               {description && <div className="mt-1 text-sm text-ink-2">{description}</div>}
             </div>
+            {aside && <div className="ml-auto flex shrink-0 items-center gap-2 self-center">{aside}</div>}
             <IconButton label="Close" onClick={onClose} className="-mr-2 shrink-0">
               <X className="size-5" aria-hidden />
             </IconButton>
@@ -179,3 +184,6 @@ const numberFmt = new Intl.NumberFormat('en-US')
 
 export const formatDateTime = (iso: string) => dateTime.format(new Date(iso))
 export const formatNumber = (n: number) => numberFmt.format(n)
+
+const dateOnly = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+export const formatDate = (iso: string) => dateOnly.format(new Date(iso))

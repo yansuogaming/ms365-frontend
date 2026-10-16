@@ -12,7 +12,7 @@ React 19 + Vite + TypeScript, Tailwind CSS v4, React Router, TanStack Query, luc
 
 ## Users
 
-A small internal operations team that signs in to many different Microsoft 365 tenants and runs repetitive admin tasks there every day (create mailboxes, reset passwords, check licenses, review users, devices and security settings).
+A small internal operations team that signs in to many different Microsoft 365 tenants and runs repetitive admin tasks there every day (reset passwords, check licenses, review users, devices and security settings).
 
 ## Product Purpose
 
@@ -22,7 +22,7 @@ A single admin console that puts the tenant tasks the team runs most often behin
 
 - Sign-in is per tenant: the operator pastes one credential string in the form `email:password`. There is no landing page; the app opens straight to sign-in.
 - After sign-in the active tenant domain is always visible in the sidebar header.
-- Navigation groups: Quick actions, Overview, Identity, Billing, Security, Devices, Admin 365 (full list in `src/app/navigation.ts`).
+- Navigation groups: Overview, Identity, Billing, Security, Devices, Admin 365 (full list in `src/app/navigation.ts`).
 - Long sessions, many tenants per day, desktop-first.
 
 ## Capabilities and Constraints

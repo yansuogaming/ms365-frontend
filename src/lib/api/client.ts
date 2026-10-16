@@ -57,3 +57,22 @@ export async function apiFetch<T>(path: string, { body, headers, ...init }: Requ
 
   return data as T
 }
+
+/** Downloads a non-JSON response (e.g. a TXT export) as a file named by the server or `fallbackName`. */
+export async function apiDownload(path: string, fallbackName: string) {
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { credentials: 'include' })
+  } catch {
+    throw new ApiError(0, 'Cannot reach the API. Check your connection or the API URL.')
+  }
+  if (!res.ok) {
+    const err = ((await res.json().catch(() => null)) ?? {}) as { message?: string; code?: string }
+    throw new ApiError(res.status, err.message ?? `Download failed (${res.status}).`, err.code)
+  }
+  const name = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName
+  const url = URL.createObjectURL(await res.blob())
+  const a = Object.assign(document.createElement('a'), { href: url, download: name })
+  a.click()
+  URL.revokeObjectURL(url)
+}

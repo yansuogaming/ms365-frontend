@@ -51,4 +51,7 @@ export const notify = {
   error: (message: string, o?: Options) => sonner.error(message, { duration: 6000, ...o }),
   warning: (message: string, o?: Options) => sonner.warning(message, o),
   info: (message: string, o?: Options) => sonner.info(message, o),
+  /** Stays until replaced: pass the returned id to a later success/error, or dismiss it. */
+  loading: (message: string, o?: Options) => sonner.loading(message, o),
+  dismiss: (id?: string | number) => sonner.dismiss(id),
 }

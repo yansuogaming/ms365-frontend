@@ -167,3 +167,214 @@ Body: the account options. Creates the AD user matching the cloud UPN, or matche
 
 ### `POST /directory/ad-helper/delta-sync`
 Triggers `Start-ADSyncSyncCycle -PolicyType Delta`. Returns `{ "message": string }`.
+
+## Pagination (all list endpoints)
+
+List endpoints take `page` (1-based) and `pageSize` (10, 25, 50 or 100) and return:
+
+```json
+{ "items": [], "total": 0, "page": 1, "pageSize": 25 }
+```
+
+`total` is the count after filters, so the UI can show "26–50 of 1,284" and page numbers. Bulk endpoints return a `BulkResult`:
+
+```json
+{ "succeeded": 3, "failed": [{ "id": "…", "label": "user@domain.com", "error": "Insufficient privileges" }] }
+```
+
+## Users
+
+### `GET /users`
+Query: `page`, `pageSize`, `search` (matches display name or UPN), `status` (`active` | `blocked`), `license` (a `skuId`, `has` for any license, or `none` for unlicensed users), `role` (a role name, or `any` for any admin role), `sort` (`createdAt` | `displayName` | `oneDrive`, then `:asc` | `:desc`; the default is `createdAt:desc`). Omitted filters mean "any". Returns `Page<UserRow>`:
+
+```json
+{
+  "id": "…", "displayName": "…", "upn": "…", "status": "active",
+  "licenses": [{ "skuId": "…", "name": "Office 365 A1 for faculty" }],
+  "roles": ["User Administrator"],
+  "createdAt": "2026-10-15T09:12:00Z",
+  "oneDrive": { "usedBytes": 0, "quotaBytes": 0 }
+}
+```
+
+`oneDrive` is `null` when OneDrive is not provisioned or its usage cannot be read.
+
+### `GET /users/{id}`
+`UserRow` plus `givenName`, `surname`, `jobTitle`, `department`, `usageLocation` (2 letters). Used by the Edit dialog.
+
+### `PATCH /users/{id}`
+Body: any subset of `displayName`, `givenName`, `surname`, `jobTitle`, `department`, `usageLocation`. Only changed fields are sent. Returns the updated `UserRow`.
+
+### `POST /users/{id}/rename`
+Body `{ "upn": "new@verified-domain.com", "displayName"?: "…" }`. Returns the updated `UserRow`. The domain must be a verified domain from `GET /organization`.
+
+### Bulk actions
+Each takes `{ "ids": string[], … }` and returns a `BulkResult`. The UI always asks the operator to confirm first.
+
+| Endpoint | Extra body | Effect |
+|---|---|---|
+| `POST /users/bulk/block` | `"blocked": boolean` | Block or unblock sign-in |
+| `POST /users/bulk/revoke-sessions` | none | Revoke refresh tokens and sessions |
+| `POST /users/bulk/force-password-change` | none | Require a new password at next sign-in |
+| `POST /users/bulk/language` | `"language": "vi-VN"` | Set `preferredLanguage` |
+| `POST /users/bulk/edit` | see below | Roles and shared fields |
+| `POST /users/bulk/rename` | see below (no `ids`) | Display names / usernames |
+| `POST /users/bulk/mfa/phone` | `"entries": [{ "id", "phoneNumber" }]` instead of `ids` | Add an SMS phone method. `phoneNumber` is already in the Graph format `+{country code} {number}`, e.g. `+84 901234567` (the UI picks the country and drops the trunk 0) |
+| `POST /users/bulk/mfa/email` | `"entries": [{ "id", "email" }]` instead of `ids` | Set the SSPR recovery email: write it to the user's `otherMails` via Graph, as the original console does |
+| `POST /users/bulk/delete` | none | Soft delete (restorable for 30 days) |
+
+### `POST /users/bulk/edit`
+
+```json
+{
+  "ids": ["…"],
+  "roles": { "mode": "assign", "roleIds": ["…"] },
+  "removeAllRoles": false,
+  "fields": { "usageLocation": "VN", "jobTitle": "", "department": "IT" }
+}
+```
+
+- `roles` and `removeAllRoles` are both optional and never sent together. `removeAllRoles: true` removes every directory role the users hold.
+- `fields` contains only the fields the operator ticked. An empty string clears that field.
+- Role ids come from `GET /directory/role-definitions`, which returns `[{ "id", "name" }]` for every assignable role.
+
+### `POST /users/bulk/rename`
+The single Rename dialog uses this endpoint for one user or many.
+
+```json
+{ "changes": [{ "id": "…", "displayName": "New name", "upnLocal": "new.name", "domain": "contoso.com" }] }
+```
+
+- The UI computes each new value (prefix, suffix, find & replace, numbered set, or one by one) and sends only what changed.
+- `upnLocal` is the part before `@`.
+- `domain` is present only when the operator moves users to another verified domain; otherwise keep the current domain.
+- Reject a UPN that is already taken with a per-user failure in the `BulkResult`.
+
+### `POST /users/bulk/delete-by-upn`
+Body `{ "upns": string[] }`. The UI reads the TXT file on the operator's device and sends the parsed list (lowercased and de-duplicated). Returns a `BulkResult` whose `label` is the UPN.
+
+### Credentials: `POST /users/bulk/reset-password` and `POST /users/bulk/tap`
+
+| Endpoint | Body |
+|---|---|
+| `POST /users/bulk/reset-password` | `{ "ids": string[], "requireChange": boolean }` |
+| `POST /users/bulk/tap` | `{ "ids": string[], "lifetimeMinutes": 60, "oneTime": true }` |
+
+Both return:
+
+```json
+{ "results": [{ "upn": "…", "secret": "…", "expiresAt"?: "…" }, { "upn": "…", "error": "…" }] }
+```
+
+The UI shows each `secret` once and never stores it. The backend must not log these values either.
+
+### `GET /users/export?format=txt&…`
+Takes the same filters as `GET /users`, without paging. Returns `text/plain`, one UPN per line, with `Content-Disposition: attachment; filename="users.txt"`.
+
+### Lookups
+
+| Endpoint | Returns |
+|---|---|
+| `GET /licenses/skus` | `[{ "skuId", "name", "consumed", "enabled" }]`. Used by the license filter and the License usage dialog. |
+| `GET /directory/roles` | `[{ "name", "memberCount" }]`. Used by the role filter. |
+| `GET /organization` | `{ "displayName", "tenantId", "country", "createdAt", "technicalContacts": string[], "domains": [{ "name", "isDefault", "isVerified" }] }`. |
+
+### Create user: `POST /users`
+
+```json
+{
+  "displayName": "Jane Doe", "upnLocal": "jane.doe", "domain": "contoso.com",
+  "password": "Tsg78374", "forceChangePassword": false, "usageLocation": "US",
+  "skuIds": ["…"], "groupIds": ["…"], "roleIds": ["…"],
+  "sendCredentialsTo": "manager@example.com"
+}
+```
+
+- Returns the new `UserRow`. **409** when the UPN is taken.
+- The password is generated in the browser (crypto random) and shown to the operator once. The backend must not log it.
+- With `sendCredentialsTo`, the backend emails the sign-in details to that address.
+
+### Invite guest: `POST /users/invite`
+Body `{ "email": "person@partner.com", "displayName"?: "…", "sendInvitationEmail": true }`. Returns `{ "user": UserRow, "inviteRedeemUrl": "…" }`. This is a Graph B2B invitation and needs `User.Invite.All`.
+
+### Groups: `GET /groups/options`
+Returns `[{ "id", "displayName" }]` for the group pickers.
+
+### One user (Edit user dialog)
+
+| Endpoint | Body | Notes |
+|---|---|---|
+| `GET /users/{id}` | none | Also returns `mobilePhone`, `accountEnabled` and `recoveryEmail` (or `null`). |
+| `PATCH /users/{id}` | any of the profile fields, plus `mobilePhone` and `accountEnabled` | Username or domain changes go through `/rename` first. |
+| `POST /users/{id}/password` | `{ "password", "forceChange" }` | 204 |
+| `POST /users/{id}/revoke-mfa` | none | Revokes sessions and removes MFA methods so the user registers again. 204 |
+| `PUT /users/{id}/recovery-email` | `{ "email": "…" \| null }` | SSPR recovery email, stored in `otherMails`; `null` removes it. 204 |
+| `POST /users/{id}/licenses` | `{ "add": skuIds, "remove": skuIds }` | Returns `UserRow`. |
+| `GET /users/{id}/groups` | none | The user's groups, `[{ "id", "displayName" }]`. Loaded on demand. |
+| `POST /users/{id}/groups` | `{ "add": groupIds, "remove": groupIds }` | Returns the updated group list. |
+| `PUT /users/{id}/roles` | `{ "roleIds": [...] }` | The **full** set the user should hold; the backend applies the difference. |
+
+### Organization: `PATCH /organization`
+`GET /organization` also returns `"preferredLanguage": "en-GB"` (or `null`).
+
+```json
+{ "technicalContact": "admin@example.com", "preferredLanguage": "en-GB", "applyToAllUsers": false, "includeMailbox": false }
+```
+
+- `applyToAllUsers: true` also sets `preferredLanguage` on every user in the tenant. This is not reverted automatically.
+- `includeMailbox` (only with `applyToAllUsers`) also changes each mailbox's Outlook language.
+- Returns `{ "organization": OrgProfile, "usersUpdated"?: number }`.
+
+### License usage scan
+A long-running job. The UI starts it, then polls every 1.5 s until `state` is not `running`.
+
+#### `POST /licenses/usage/scan`
+Returns `{ "jobId": "…" }`.
+
+```json
+{ "period": "D30", "activeDays": 30, "maxUsers": 5000, "targets": ["user@domain.com"] }
+```
+
+- `period` is the Graph usage-report period: `D7` | `D30` | `D90` | `D180`.
+- A licensed user with no activity in `activeDays` (1–180) is inactive.
+- `targets` is optional and limits the scan to those UPNs. The UI strips anything after `:` from pasted `mail:pass` lines, so only emails are ever sent.
+
+#### `GET /licenses/usage/scan/{jobId}`
+
+```json
+{
+  "id": "…",
+  "state": "running",
+  "progress": { "scanned": 120, "total": 500 },
+  "summary": { "licensed": 0, "active": 0, "inactive": 0, "auditLimited": 0, "neverUsed": 0, "noLicense": 0, "scanned": 0 },
+  "rows": [{ "id": "…", "displayName": "…", "upn": "…", "status": "inactive", "licenses": ["Office 365 A1 for faculty"], "lastSeen": "2026-09-01T08:00:00Z", "signal": "Sign-in", "device": "Windows · Outlook" }],
+  "error": "only when state is failed"
+}
+```
+
+- `state` is one of `"running" | "done" | "failed"`.
+- `summary` may update while the scan is running. `rows` may stay empty until the scan is `done`.
+- `status` is one of `active` | `inactive` | `auditLimited` (usage hidden by the tenant's privacy setting) | `neverUsed` | `noLicense`.
+- The UI filters, searches, pages and exports CSV on the client.
+
+`GET /directory/role-definitions` should list the common admin roles first (Global, User, Security, Conditional Access, Privileged Authentication, Helpdesk, Billing, Password, Application, Privileged Role, Exchange, SharePoint, Skype for Business), because the Roles filter shows them in the order returned.
+
+### Deleted users
+Soft-deleted accounts (Entra keeps them for 30 days). `POST /users/bulk/delete` and `POST /users/bulk/delete-by-upn` move users here.
+
+#### `GET /users/deleted`
+Query: `page`, `pageSize`, `search` (name or UPN). Returns `Page<DeletedUser>`:
+
+```json
+{ "id": "…", "displayName": "…", "upn": "…", "deletedAt": "2026-10-15T09:12:00Z" }
+```
+
+The UI computes the days left from `deletedAt` plus 30 days.
+
+#### `POST /users/deleted/restore` and `POST /users/deleted/purge`
+Body: either `{ "ids": string[] }`, or `{ "all": true, "search": "…" }` for "Restore all" / "Delete all permanently" (everything matching the current search; an empty search means all). Returns a `BulkResult`.
+
+Purge is irreversible. The UI asks for confirmation, and for "all" the operator must type DELETE.
+
+### Planned screens
+`/identity/users/bulk-create` exists as a route, but its screen is not built yet. Their API contract will be added here when they are.

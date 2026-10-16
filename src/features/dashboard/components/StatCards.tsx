@@ -5,9 +5,9 @@ import type { DashboardSummary } from '../types'
 
 function Stat({ icon: Icon, label, value, note }: { icon: LucideIcon; label: string; value: number | null | undefined; note?: ReactNode }) {
   return (
-    <div className="paper-shadow flex flex-col gap-4 rounded-[var(--radius-paper)] border border-line bg-paper p-5">
-      <div className="flex items-center gap-2.5 text-sm font-semibold text-ink-2">
-        <span className="grid size-8 place-items-center rounded-full bg-coral-wash text-coral-ink">
+    <div className="paper-shadow flex min-w-0 flex-col gap-3 rounded-[var(--radius-paper)] border border-line bg-paper p-4 sm:gap-4 sm:p-5">
+      <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-ink-2 sm:gap-2.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-coral-wash text-coral-ink">
           <Icon className="size-4" strokeWidth={2} aria-hidden />
         </span>
         {label}
@@ -16,9 +16,9 @@ function Stat({ icon: Icon, label, value, note }: { icon: LucideIcon; label: str
         {value === undefined ? (
           <span className="block h-9 w-28 animate-pulse rounded bg-paper-3" />
         ) : (
-          <p className="tabular font-display text-[2.1rem] leading-none font-semibold">{value === null ? '—' : formatNumber(value)}</p>
+          <p className="tabular font-display text-[1.6rem] leading-none font-semibold sm:text-[2.1rem]">{value === null ? '—' : formatNumber(value)}</p>
         )}
-        <p className="mt-2 min-h-5 text-sm text-ink-3">{value === null ? 'Not reported' : note}</p>
+        <p className="mt-2 min-h-5 text-xs text-ink-3 sm:text-sm">{value === null ? 'Not reported' : note}</p>
       </div>
     </div>
   )
@@ -28,7 +28,7 @@ function Stat({ icon: Icon, label, value, note }: { icon: LucideIcon; label: str
 export function StatCards({ summary }: { summary?: DashboardSummary }) {
   const s = summary
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       <Stat
         icon={Users}
         label="Total users"

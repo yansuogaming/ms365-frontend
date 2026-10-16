@@ -35,7 +35,7 @@ export function EmptyState({ title, children, action }: { title: string; childre
       </span>
       <div>
         <p className="font-display text-lg font-semibold">{title}</p>
-        {children && <p className="mt-1 max-w-[60ch] text-ink-2">{children}</p>}
+        {children && <p className="mt-1 max-w-[60ch] text-ink-2 [overflow-wrap:anywhere]">{children}</p>}
       </div>
       {action}
     </div>
@@ -52,7 +52,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
       </span>
       <div>
         <p className="font-display text-lg font-semibold">Couldn’t load this data</p>
-        <p className="mt-1 max-w-[60ch] text-ink-2">
+        <p className="mt-1 max-w-[60ch] text-ink-2 [overflow-wrap:anywhere]">
           {message}
           {status && <span className="ml-2 text-sm text-ink-3">{status}</span>}
         </p>
