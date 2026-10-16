@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { notify } from '@/components/ui/Toaster'
 import { authApi } from './api'
 import type { LoginRequest } from './types'
 
@@ -17,7 +18,12 @@ export function useLogin() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: LoginRequest) => authApi.login(body),
-    onSuccess: (session) => qc.setQueryData(sessionKey, session),
+    // LoginPage words the failure itself (wrong credential vs. rate limit vs. offline).
+    meta: { silentError: true },
+    onSuccess: (session) => {
+      qc.setQueryData(sessionKey, session)
+      notify.success(`Signed in to ${session.tenant.domain}`)
+    },
   })
 }
 
@@ -25,6 +31,7 @@ export function useLogout() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: authApi.logout,
+    onSuccess: () => notify.success('Signed out'),
     onSettled: () => qc.clear(),
   })
 }

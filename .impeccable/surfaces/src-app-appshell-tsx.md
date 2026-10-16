@@ -9,13 +9,13 @@ related_targets: ["src/features/auth/LoginPage.tsx"]
 
 Scope: authenticated app shell (sidebar, header, page frame) shared by every module, plus the Login route. Mode: Operate.
 Audience/job: internal ops team switching across many M365 tenants daily; find a task fast, never doubt the active tenant.
-Constraints: no mock data, every view has loading/empty/error states; credential string never persisted; light AND dark themes required (user request).
+Constraints: no mock data, every view has loading/empty/error states; credential string never persisted; light AND dark themes required.
 
 ## Direction contract
 
-THESIS: The sidebar is the building's tenant board, so the active tenant reads like the name in a lobby directory. Refuses the default white Fluent rail with a blue pill.
-OWN-WORLD: Grooved felt-black rail (#1c1d1f) with white pressed-in condensed caps (Archivo Narrow), brass frame accent (#b48a3c), group colour ticks. Work area: warm grey paper (#eceae4) in light, graphite (#18191b) in dark; the rail stays felt in both. Square 4px corners, 1px rules, tabular figures.
-STORY: The operator signs in with one credential string, lands on the dashboard, reads the tenant on the board, then jumps to a task from grouped nav or Ctrl K.
-FIRST VIEWPORT: 264px felt rail, brand, brass-framed "NOW IN TENANT" board, grouped nav with colour ticks; 60px header with condensed uppercase page title, API status, search, theme toggle; work area with one fixed page frame. Login: felt board panel centred, single credential input, primary Sign in.
-FORM: Lobby letterboard, candidate 6 of 7, seed: none (unavailable). Signature move: tenant name presses in letter by letter on sign-in. Raises: group colour ticks (transit); bulk results hold until acknowledged (gate board); one fixed page header frame (folio).
+THESIS: M365 Admin is Family Photos' sibling: the same navy cover and coral ribbon, put to work on tenant administration. User-pinned after rejecting the rolled directions (Lobby Directory, Cobalt demo).
+OWN-WORLD: Family Photos tokens verbatim: white paper / navy-at-night grounds, blue-violet ink, coral as the only accent, navy vinyl sidebar. Bricolage Grotesque display, Be Vietnam Pro text, pill buttons, 6px paper radius, soft paper shadow. Gear "A" logo.
+STORY: Operator pastes one credential, lands in the console, reads the active tenant card at the top of the sidebar, jumps to a tool from grouped nav or Ctrl K.
+FIRST VIEWPORT: Login: vinyl cover 5/12 (logo, three workspace cards fanned with real tool names, one line of copy), form 7/12 (credential field with morphing eye, coral pill Sign in). Shell: 272px vinyl sidebar (collapsible to 76px rail, Ctrl B), tenant card, grouped nav with coral ribbon; 64px header with group + page title, API status, search.
+FORM: Brief-pinned (sibling product system), seed: none (unavailable). Signature move: the coral ribbon gliding between nav items.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

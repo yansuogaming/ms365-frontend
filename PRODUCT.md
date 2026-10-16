@@ -35,7 +35,9 @@ A single admin console that puts the tenant tasks the team runs most often behin
 
 ## Brand Commitments
 
-Product name shown in the UI: "M365 Admin".
+Product name shown in the UI: "M365 Admin". Logo: a gear with a letter "A", served from `public/logo.png` (supplied by the client).
+
+Visual system is shared with the sibling product Family Photos (D:/Codeweb/frontend-familyphoto2) so both read as one family: its oklch tokens (paper, ink, coral accent, navy "vinyl" cover), Bricolage Grotesque display + Be Vietnam Pro text, pill buttons, navy sidebar with the coral ribbon marking the active item, Morphicons for morphing icons. Light and dark themes are both required.
 
 ## Evidence on Hand
 

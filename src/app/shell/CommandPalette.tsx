@@ -64,10 +64,10 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       onClose={onClose}
       onClick={(e) => e.target === dialogRef.current && onClose()}
       aria-label="Go to page"
-      className="m-auto mt-[12vh] w-[min(560px,calc(100vw-2rem))] overflow-hidden rounded-board border border-line bg-surface p-0 text-ink shadow-[0_24px_60px_-12px_rgb(0_0_0/0.35)] backdrop:bg-felt/55"
+      className="m-auto mt-[12vh] w-[min(560px,calc(100vw-2rem))] overflow-hidden rounded-[var(--radius-paper)] border border-line bg-paper p-0 text-ink shadow-[0_24px_60px_-20px_hsl(var(--shadow)/0.6)] backdrop:bg-[oklch(0.2_0.04_262/0.55)]"
     >
-      <div className="flex items-center gap-3 border-b border-line-soft px-4">
-        <Search className="size-4 text-ink-faint" aria-hidden />
+      <div className="flex items-center gap-3 border-b border-line px-4">
+        <Search className="size-4 text-ink-3" aria-hidden />
         <input
           autoFocus
           value={query}
@@ -81,12 +81,12 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           aria-expanded="true"
           aria-controls="palette-results"
           aria-activedescendant={results[active] ? `palette-${active}` : undefined}
-          className="h-13 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-faint"
+          className="h-13 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3"
         />
-        <kbd className="font-board text-[11px] tracking-wider text-ink-faint">ESC</kbd>
+        <kbd className="rounded-md border border-line px-1.5 text-[11px] font-medium text-ink-3">Esc</kbd>
       </div>
       <ul id="palette-results" ref={listRef} role="listbox" className="max-h-[50vh] overflow-y-auto p-1.5">
-        {results.length === 0 && <li className="px-3 py-6 text-sm text-ink-muted">No page matches “{query}”.</li>}
+        {results.length === 0 && <li className="px-3 py-6 text-sm text-ink-2">No page matches “{query}”.</li>}
         {results.map((item, i) => (
           <li
             key={item.path}
@@ -97,14 +97,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             onMouseMove={() => setActive(i)}
             onClick={() => go(i)}
             className={clsx(
-              'flex h-10 cursor-pointer items-center gap-3 rounded-[3px] px-3 text-sm',
-              i === active ? 'bg-ink text-ground' : 'text-ink',
+              'flex h-10 cursor-pointer items-center gap-3 rounded-[var(--radius-paper)] px-3 text-sm',
+              i === active ? 'bg-coral-wash text-ink' : 'text-ink-2',
             )}
           >
-            <item.icon className="size-4 shrink-0 opacity-75" strokeWidth={1.75} aria-hidden />
+            <item.icon className="size-4 shrink-0 text-coral-ink" strokeWidth={1.75} aria-hidden />
             <span className="flex-1 truncate">{item.label}</span>
-            <span className="flex items-center gap-1.5 font-board text-[11px] tracking-[0.14em] uppercase opacity-70">
-              <span aria-hidden className="h-[3px] w-2" style={{ background: item.group.tick }} />
+            <span className="text-xs font-semibold tracking-wide text-ink-3 uppercase">
               {item.group.label}
             </span>
             {i === active && <CornerDownLeft className="size-3.5 opacity-70" aria-hidden />}

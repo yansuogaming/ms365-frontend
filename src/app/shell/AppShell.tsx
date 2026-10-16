@@ -1,25 +1,93 @@
 import { Menu, Search, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
+import { LogoMark } from '@/components/brand/Logo'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import type { Session } from '@/features/auth/types'
 import { useSession } from '@/features/auth/useSession'
 import { findNavItem } from '../navigation'
-import { ApiStatusPill } from './ApiStatusPill'
-import { BrandMark } from './BrandMark'
+import { ApiStatus } from './ApiStatus'
+import { Clock } from './Clock'
 import { CommandPalette } from './CommandPalette'
 import { Sidebar } from './Sidebar'
-import { ThemeToggle } from './ThemeToggle'
+
+// Sidebar collapsed or not, remembered per browser (same as the Family Photos admin).
+const RAIL_KEY = 'm365-nav'
+const railListeners = new Set<() => void>()
+const readRail = () => localStorage.getItem(RAIL_KEY) === 'rail'
+function setRail(rail: boolean) {
+  localStorage.setItem(RAIL_KEY, rail ? 'rail' : 'full')
+  railListeners.forEach((l) => l())
+}
+function useRail() {
+  return useSyncExternalStore((cb) => {
+    railListeners.add(cb)
+    return () => railListeners.delete(cb)
+  }, readRail)
+}
+
+/** Phones and small tablets: the sidebar slides in as a drawer. */
+function Drawer({ open, onClose, session }: { open: boolean; onClose: () => void; session: Session }) {
+  const ref = useRef<HTMLDialogElement>(null)
+  const reduce = useReducedMotion()
+  useEffect(() => {
+    const d = ref.current
+    if (!d) return
+    if (open && !d.open) d.showModal()
+    else if (!open && d.open) d.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      aria-label="Menu"
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      className="m-0 h-dvh max-h-none w-[min(18rem,85vw)] max-w-none bg-transparent p-0 backdrop:bg-[oklch(0.2_0.04_262/0.55)]"
+    >
+      {open && (
+        <motion.div
+          initial={reduce ? false : { x: '-100%' }}
+          animate={{ x: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="vinyl relative h-full text-on-cover"
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="absolute top-5 right-2 z-10 inline-flex size-10 items-center justify-center rounded-full text-on-cover/80 hover:bg-[oklch(1_0_0/0.08)]"
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+          <Sidebar session={session} layoutId="nav-drawer" onNavigate={onClose} />
+        </motion.div>
+      )}
+    </dialog>
+  )
+}
 
 export function AppShell() {
   const { data: session, isPending, isError } = useSession()
   const location = useLocation()
-  const [railOpen, setRailOpen] = useState(false)
-  const [paletteOpen, setPaletteOpen] = useState(false)
+  const rail = useRail()
+  const [menu, setMenu] = useState(false)
+  const [palette, setPalette] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      if (!(e.ctrlKey || e.metaKey)) return
+      const key = e.key.toLowerCase()
+      if (key === 'k') {
         e.preventDefault()
-        setPaletteOpen(true)
+        setPalette(true)
+      } else if (key === 'b' && !(e.target as HTMLElement)?.closest?.('input, textarea, [contenteditable]')) {
+        e.preventDefault()
+        setRail(!readRail())
       }
     }
     window.addEventListener('keydown', onKey)
@@ -32,83 +100,67 @@ export function AppShell() {
   const current = findNavItem(location.pathname)
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[264px_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-dvh lg:block">
-        <Sidebar session={session} />
+    <div
+      className={`min-h-dvh lg:grid lg:transition-[grid-template-columns] lg:duration-300 lg:ease-[var(--ease-out-expo)] ${
+        rail ? 'lg:grid-cols-[76px_minmax(0,1fr)]' : 'lg:grid-cols-[272px_minmax(0,1fr)]'
+      }`}
+    >
+      <aside className="vinyl sticky top-0 z-40 hidden h-dvh text-on-cover lg:block">
+        <Sidebar session={session} layoutId="nav" rail={rail} onToggleRail={() => setRail(!rail)} />
       </aside>
 
-      {railOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button type="button" aria-label="Close menu" className="absolute inset-0 bg-felt/60" onClick={() => setRailOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-[min(288px,85vw)] shadow-[8px_0_32px_rgb(0_0_0/0.35)]">
-            <Sidebar session={session} onNavigate={() => setRailOpen(false)} />
-            <button
-              type="button"
-              onClick={() => setRailOpen(false)}
-              aria-label="Close menu"
-              className="absolute top-3.5 right-3 grid size-8 place-items-center rounded-board text-letter/80 hover:text-letter"
-            >
-              <X className="size-4" aria-hidden />
-            </button>
-          </aside>
-        </div>
-      )}
-
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-15 items-center gap-3 border-b border-line bg-ground/92 px-4 backdrop-blur-sm sm:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-paper/90 px-3 backdrop-blur-md sm:px-8">
           <button
             type="button"
-            onClick={() => setRailOpen(true)}
+            onClick={() => setMenu(true)}
             aria-label="Open menu"
-            className="grid size-9 place-items-center rounded-board border border-line text-ink lg:hidden"
+            aria-expanded={menu}
+            className="inline-flex size-10 items-center justify-center rounded-full text-ink-2 hover:bg-paper-3 lg:hidden"
           >
-            <Menu className="size-4" aria-hidden />
+            <Menu className="size-5" aria-hidden />
           </button>
-          <span className="lg:hidden">
-            <BrandMark size={24} />
-          </span>
+          <LogoMark className="size-8 lg:hidden" />
 
-          <div className="flex min-w-0 items-baseline gap-3">
-            <h1 className="truncate font-board text-[22px] font-bold tracking-[0.04em] uppercase">{current?.label ?? 'Not found'}</h1>
-            {current && (
-              <span className="hidden items-center gap-1.5 font-board text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase sm:flex">
-                <span aria-hidden className="h-[3px] w-2.5" style={{ background: current.group.tick }} />
-                {current.group.label}
-              </span>
-            )}
+          <div className="min-w-0">
+            {current && <p className="hidden text-xs font-semibold tracking-wide text-ink-3 uppercase sm:block">{current.group.label}</p>}
+            <h1 className="truncate text-xl font-semibold">{current?.label ?? 'Not found'}</h1>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <ApiStatusPill className="hidden md:inline-flex" />
+            <ApiStatus className="hidden md:inline-flex" />
+            <Clock className="hidden xl:inline-flex" />
             <button
               type="button"
-              onClick={() => setPaletteOpen(true)}
-              className="flex h-9 items-center gap-2 rounded-board border border-line bg-surface px-3 text-[13px] text-ink-muted transition-colors hover:border-ink-faint hover:text-ink"
+              onClick={() => setPalette(true)}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-paper px-3.5 text-sm text-ink-3 transition-colors hover:border-ink-3 hover:text-ink sm:w-60"
             >
               <Search className="size-4" aria-hidden />
-              <span className="hidden sm:inline">Search</span>
-              <kbd className="hidden rounded-[3px] border border-line px-1.5 font-board text-[11px] tracking-wider sm:inline">Ctrl K</kbd>
+              <span className="hidden sm:inline">Search tools…</span>
+              <kbd className="ml-auto hidden rounded-md border border-line px-1.5 text-[11px] font-medium text-ink-3 sm:inline">Ctrl K</kbd>
             </button>
-            <ThemeToggle />
+            <ThemeToggle className="lg:hidden" />
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-7">
+        <Drawer open={menu} onClose={() => setMenu(false)} session={session} />
+
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 py-6 sm:px-8 lg:py-8">
           <Outlet />
         </main>
       </div>
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandPalette open={palette} onClose={() => setPalette(false)} />
     </div>
   )
 }
 
 function ShellLoading() {
   return (
-    <div className="felt grid min-h-dvh place-items-center">
+    <div className="vinyl grid min-h-dvh place-items-center text-on-cover">
       <div role="status" className="flex flex-col items-center gap-4">
-        <BrandMark size={36} />
-        <span className="font-board text-[12px] font-semibold tracking-[0.2em] text-letter-muted uppercase">Opening session…</span>
+        <LogoMark className="size-12 animate-spin [animation-duration:3s]" />
+        <span className="text-sm text-on-cover/70">Opening session…</span>
       </div>
     </div>
   )

@@ -1,10 +1,15 @@
-import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole } from 'lucide-react'
-import { useId, useState, type FormEvent } from 'react'
+import { ArrowRight, KeyRound, LockKeyhole } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
+import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { navigation } from '@/app/navigation'
-import { ApiStatusPill } from '@/app/shell/ApiStatusPill'
-import { BrandMark } from '@/app/shell/BrandMark'
-import { ThemeToggle } from '@/app/shell/ThemeToggle'
+import { ApiStatus } from '@/app/shell/ApiStatus'
+import { Logo } from '@/components/brand/Logo'
+import { Button, IconButton } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Morph, morphIcons } from '@/components/ui/Morph'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { notify } from '@/components/ui/Toaster'
 import { ApiError } from '@/lib/api/client'
 import { parseCredential } from './api'
 import { useLogin, useSession } from './useSession'
@@ -18,65 +23,43 @@ function loginErrorMessage(error: unknown) {
   return 'Sign-in failed. Try again.'
 }
 
-/** Text whose letters press into the felt one by one, starting at `offset`. */
-function Pressed({ text, offset = 0 }: { text: string; offset?: number }) {
+// Three workspaces fanned out like cards on a desk, each showing its real tools.
+const fan = ['identity', 'security', 'quick']
+  .map((id) => navigation.find((g) => g.id === id))
+  .filter((g) => g !== undefined)
+const fanPose = [
+  { rotate: -9, x: -78, y: 26 },
+  { rotate: 6, x: 70, y: -10 },
+  { rotate: -2, x: 0, y: 6 },
+]
+
+function WorkspaceFan() {
+  const reduce = useReducedMotion()
   return (
-    <span aria-label={text}>
-      {Array.from(text).map((ch, i) => (
-        <span key={i} aria-hidden className="letter-press" style={{ ['--i' as string]: offset + i }}>
-          {ch === ' ' ? ' ' : ch}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-const YEAR = new Date().getFullYear()
-
-// Letter-press start index per group, so the board fills top to bottom.
-const directory = navigation.map((group, i, all) => ({
-  group,
-  offset: all.slice(0, i).reduce((n, g) => n + g.label.length + 2, 0),
-}))
-
-/** Left half: the lobby directory, listing the console's real sections. */
-function DirectoryPanel() {
-  return (
-    <section className="felt relative hidden min-h-dvh flex-col px-10 py-9 text-letter lg:flex xl:px-16">
-      <div className="flex items-center gap-3">
-        <BrandMark size={32} />
-        <span className="font-board text-[18px] font-bold tracking-[0.1em] uppercase">M365 Admin</span>
-      </div>
-
-      <div className="my-auto max-w-[560px] py-12">
-        <p className="max-w-[16ch] text-[44px] leading-[1.05] font-semibold tracking-[-0.02em] text-balance xl:text-[52px]">
-          Every tenant, one front desk.
-        </p>
-        <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-letter-muted">
-          Sign in once per tenant and run mailboxes, licenses, security and devices from a single console.
-        </p>
-
-        <div className="mt-10 rounded-[3px] border-[3px] border-brass bg-felt shadow-[inset_0_2px_10px_rgb(0_0_0/0.6)]">
-          <ul className="divide-y divide-felt-seam/70 px-5 py-2">
-            {directory.map(({ group, offset }) => (
-                <li key={group.id} className="flex h-11 items-center gap-3.5 font-board font-bold tracking-[0.08em] uppercase">
-                  <span aria-hidden className="h-[3px] w-4 shrink-0" style={{ background: group.tick }} />
-                  <span className="flex-1 truncate text-[18px]">
-                    <Pressed text={group.label} offset={offset} />
-                  </span>
-                  <span className="text-[13px] font-semibold tracking-[0.14em] text-letter-muted tabular-nums">
-                    {group.items.length} {group.items.length === 1 ? 'tool' : 'tools'}
-                  </span>
-                </li>
+    <div className="relative mx-auto h-80 w-full max-w-sm" aria-hidden>
+      {fan.map((group, i) => (
+        <motion.div
+          key={group.id}
+          initial={reduce ? false : { opacity: 0, y: 40, rotate: 0 }}
+          animate={{ opacity: 1, ...fanPose[i] }}
+          transition={{ duration: 0.9, delay: 0.15 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="paper-shadow absolute inset-x-0 top-6 mx-auto w-64 rounded-[var(--radius-paper)] bg-paper p-4 text-ink"
+        >
+          <div className="flex items-baseline justify-between">
+            <p className="font-display text-lg font-semibold">{group.label}</p>
+            <p className="text-xs text-ink-3">{group.items.length} tools</p>
+          </div>
+          <ul className="mt-3 space-y-1.5">
+            {group.items.slice(0, 4).map(({ label, path, icon: Icon }) => (
+              <li key={path} className="flex items-center gap-2.5 rounded-md bg-paper-2 px-2.5 py-1.5 text-sm text-ink-2">
+                <Icon className="size-4 text-coral-ink" strokeWidth={1.75} />
+                {label}
+              </li>
             ))}
           </ul>
-        </div>
-      </div>
-
-      <p className="font-board text-[12px] tracking-[0.14em] text-letter-muted uppercase">
-        © {YEAR} M365 Admin · v{__APP_VERSION__}
-      </p>
-    </section>
+        </motion.div>
+      ))}
+    </div>
   )
 }
 
@@ -87,12 +70,8 @@ export function LoginPage() {
   const from = (useLocation().state as { from?: string } | null)?.from ?? '/dashboard'
 
   const [credential, setCredential] = useState('')
-  const [revealed, setRevealed] = useState(false)
+  const [show, setShow] = useState(false)
   const [formatError, setFormatError] = useState<string | null>(null)
-
-  const inputId = useId()
-  const hintId = useId()
-  const errorId = useId()
 
   if (session) return <Navigate to={from} replace />
 
@@ -109,114 +88,91 @@ export function LoginPage() {
         setCredential('')
         navigate(from, { replace: true })
       },
+      onError: (err) => notify.error(loginErrorMessage(err)),
     })
   }
 
-  const error = formatError ?? (login.isError ? loginErrorMessage(login.error) : null)
+  const error = formatError ?? (login.isError ? loginErrorMessage(login.error) : undefined)
 
   return (
-    <div className="grid min-h-dvh bg-ground lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
-      <DirectoryPanel />
+    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      {/* the console's cover, closed */}
+      <aside className="vinyl relative hidden overflow-hidden p-10 text-on-cover lg:flex lg:flex-col lg:justify-between">
+        <span className="absolute inset-y-0 left-0 w-5 bg-[oklch(0_0_0/0.2)]" aria-hidden />
+        <div className="pl-6">
+          <Logo to="/login" />
+        </div>
+        <WorkspaceFan />
+        <div className="max-w-sm pl-6">
+          <p className="font-display text-2xl leading-snug font-semibold">Every Microsoft 365 tenant, one calm console.</p>
+          <p className="mt-3 text-sm text-on-cover/70">
+            {navigation.reduce((n, g) => n + g.items.length, 0)} tools across {navigation.length} workspaces.
+          </p>
+        </div>
+      </aside>
 
-      <section className="flex min-h-dvh flex-col">
-        <div className="flex items-center gap-2 p-4 sm:p-6">
-          <span className="flex items-center gap-2.5 lg:hidden">
-            <BrandMark size={28} />
-            <span className="font-board text-[16px] font-bold tracking-[0.1em] uppercase">M365 Admin</span>
-          </span>
-          <div className="ml-auto flex items-center gap-2">
-            <ApiStatusPill className="hidden sm:inline-flex" />
+      <div className="flex flex-col">
+        <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-8">
+          <div className="lg:invisible">
+            <Logo to="/login" tagline={false} />
+          </div>
+          <div className="flex items-center gap-2">
+            <ApiStatus className="hidden sm:inline-flex" />
             <ThemeToggle />
           </div>
         </div>
 
-        <main className="flex flex-1 items-center justify-center px-5 pb-16 sm:px-10">
-          <div className="w-full max-w-[400px]">
-            <h1 className="text-[30px] leading-tight font-semibold tracking-[-0.015em]">Sign in to a tenant</h1>
-            <p className="mt-2.5 text-[15px] leading-relaxed text-ink-muted">
-              Paste the tenant admin credential to open its console.
+        <main className="flex flex-1 items-start justify-center px-4 pt-6 pb-16 sm:px-8 lg:items-center lg:pt-0">
+          <div className="w-full max-w-md">
+            <p className="flex items-center gap-2 text-sm font-semibold text-coral-ink">
+              <KeyRound className="size-4" aria-hidden />
+              Tenant sign-in
             </p>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Sign in to a tenant</h1>
+            <p className="mt-2 text-ink-2">Paste the tenant admin credential to open its console.</p>
 
-            <form onSubmit={onSubmit} noValidate className="mt-9">
-              <label htmlFor={inputId} className="font-board text-[12px] font-semibold tracking-[0.18em] text-ink-muted uppercase">
-                Credential
-              </label>
-              <div
-                className={`mt-2 flex h-12 items-center rounded-board border bg-surface transition-colors focus-within:border-ink ${
-                  error ? 'border-danger' : 'border-line hover:border-ink-faint'
-                }`}
-              >
-                <input
-                  id={inputId}
-                  type={revealed ? 'text' : 'password'}
-                  value={credential}
-                  onChange={(e) => {
-                    setCredential(e.target.value)
-                    if (formatError) setFormatError(null)
-                  }}
-                  placeholder="admin@tenant.onmicrosoft.com:password"
-                  autoComplete="off"
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  autoFocus
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={error ? errorId : hintId}
-                  data-1p-ignore
-                  data-lpignore="true"
-                  className="h-full min-w-0 flex-1 bg-transparent px-3.5 text-[15px] outline-none placeholder:text-ink-faint focus-visible:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setRevealed((r) => !r)}
-                  aria-label={revealed ? 'Hide credential' : 'Show credential'}
-                  aria-pressed={revealed}
-                  className="mr-1.5 grid size-9 place-items-center rounded-[3px] text-ink-faint transition-colors hover:text-ink"
-                >
-                  {revealed ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
-                </button>
-              </div>
-
-              {error ? (
-                <p id={errorId} role="alert" className="mt-2.5 text-[13px] leading-snug text-danger">
-                  {error}
-                </p>
-              ) : (
-                <p id={hintId} className="mt-2.5 text-[13px] text-ink-muted">
-                  Format: email, a colon, then the password.
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={login.isPending || credential.length === 0}
-                className="mt-7 flex h-12 w-full items-center justify-center gap-2 rounded-board bg-ink font-semibold text-ground transition-colors hover:bg-ink/88 disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                {login.isPending ? (
-                  <>
-                    <LoaderCircle className="size-4 animate-spin" aria-hidden />
-                    Signing in…
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight className="size-4" aria-hidden />
-                  </>
-                )}
-              </button>
+            <form onSubmit={onSubmit} noValidate className="mt-8 flex flex-col gap-5">
+              <Field
+                label="Credential"
+                type={show ? 'text' : 'password'}
+                value={credential}
+                onChange={(e) => {
+                  setCredential(e.target.value)
+                  if (formatError) setFormatError(null)
+                }}
+                placeholder="admin@tenant.onmicrosoft.com:password"
+                autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                autoFocus
+                data-1p-ignore
+                data-lpignore="true"
+                hint="Format: email, a colon, then the password."
+                error={error}
+                trailing={
+                  <IconButton label={show ? 'Hide credential' : 'Show credential'} onClick={() => setShow((v) => !v)}>
+                    <Morph icon={show ? morphIcons.EyeOff : morphIcons.Eye} size={20} />
+                  </IconButton>
+                }
+              />
+              <Button type="submit" size="lg" loading={login.isPending} disabled={credential.length === 0} className="mt-1 w-full">
+                {login.isPending ? 'Signing in…' : 'Sign in'}
+                {!login.isPending && <ArrowRight className="size-4" aria-hidden />}
+              </Button>
             </form>
 
-            <p className="mt-8 flex items-start gap-2.5 border-t border-line pt-5 text-[13px] leading-relaxed text-ink-muted">
-              <LockKeyhole className="mt-0.5 size-4 shrink-0 text-brass" aria-hidden />
+            <p className="mt-8 flex items-start gap-2.5 border-t border-line pt-5 text-sm text-ink-2">
+              <LockKeyhole className="mt-0.5 size-4 shrink-0 text-coral-ink" aria-hidden />
               The credential goes straight to the API and is never saved in this browser.
             </p>
           </div>
         </main>
 
-        <p className="pb-6 text-center font-board text-[12px] tracking-[0.12em] text-ink-faint uppercase lg:hidden">
-          M365 Admin · v{__APP_VERSION__}
-        </p>
-      </section>
+        <p className="pb-6 text-center text-xs text-ink-3">© {COPYRIGHT_YEAR} M365 Admin · v{__APP_VERSION__}</p>
+      </div>
     </div>
   )
 }
+
+const COPYRIGHT_YEAR = new Date().getFullYear()

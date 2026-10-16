@@ -7,10 +7,12 @@ import { AppShell } from './shell/AppShell'
 
 /**
  * Feature pages register here as they are built, e.g.
- *   { path: 'dashboard', lazy: () => import('@/features/dashboard/route') }
+ *   { path: 'identity/users', lazy: () => import('@/features/users/route') }
  * Every nav entry without a page falls back to ModulePending.
  */
-const builtRoutes: { path: string; lazy: () => Promise<{ Component: React.ComponentType }> }[] = []
+const builtRoutes: { path: string; lazy: () => Promise<{ Component: React.ComponentType }> }[] = [
+  { path: 'dashboard', lazy: () => import('@/features/dashboard/route') },
+]
 
 const built = new Set(builtRoutes.map((r) => `/${r.path}`))
 

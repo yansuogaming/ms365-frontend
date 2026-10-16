@@ -1,179 +1,196 @@
-@import "@fontsource-variable/archivo";
-@import "@fontsource/archivo-narrow/600.css";
-@import "@fontsource/archivo-narrow/700.css";
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/500.css";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/700.css";
+@import "@fontsource-variable/bricolage-grotesque";
 @import "tailwindcss";
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Lobby Directory world.
- * The rail is felt in both themes; only the work area flips between
- * warm grey paper (light) and graphite (dark).
+ * Shared with Family Photos so the two products read as one family.
+ * Light: a bright white page with blue-violet ink. Dark: the navy cover at night.
+ * Coral is the single accent: primary actions, the active ribbon, focus.
  */
 :root {
-  --ground: #eceae4;
-  --surface: #f8f7f3;
-  --surface-sunk: #e4e1d9;
-  --ink: #1c1d1f;
-  --ink-muted: #5c5952;
-  --ink-faint: #7a776f;
-  --line: #d3cfc5;
-  --line-soft: #e3e0d7;
-  --focus: #9a7128;
-
-  --felt: #1c1d1f;
-  --felt-raised: #26272a;
-  --felt-seam: #2e2f33;
-  --letter: #f2f1ec;
-  --letter-muted: #a9a69d;
-  --brass: #b48a3c;
-  --brass-bright: #d2a656;
-
-  --ok: #23704a;
-  --ok-soft: #dcefe3;
-  --warn: #8a5c0e;
-  --warn-soft: #f6ead0;
-  --danger: #a2321f;
-  --danger-soft: #f6e1dc;
-  --info: #2d5f9e;
-  --info-soft: #dfe9f6;
-
+  --paper: oklch(0.99 0.004 275);
+  --paper-2: oklch(0.967 0.008 275);
+  --paper-3: oklch(0.935 0.013 275);
+  --ink: oklch(0.25 0.045 265);
+  --ink-2: oklch(0.42 0.035 265);
+  --ink-3: oklch(0.52 0.03 265);
+  --line: oklch(0.885 0.016 272);
+  --rule: oklch(0.86 0.035 285);
+  --coral: oklch(0.7 0.15 38);
+  --coral-strong: oklch(0.64 0.16 36);
+  --coral-ink: oklch(0.54 0.16 35);
+  --coral-wash: oklch(0.94 0.035 45);
+  --on-coral: oklch(0.22 0.045 265);
+  --cover: oklch(0.27 0.055 262);
+  --cover-2: oklch(0.32 0.06 262);
+  --on-cover: oklch(0.96 0.01 262);
+  --ok: oklch(0.55 0.12 155);
+  --ok-wash: oklch(0.95 0.035 155);
+  --warn: oklch(0.58 0.12 75);
+  --warn-wash: oklch(0.96 0.045 85);
+  --danger: oklch(0.55 0.18 25);
+  --danger-wash: oklch(0.95 0.03 25);
+  --shadow: 220 40% 20%;
   color-scheme: light;
 }
 
-[data-theme="dark"] {
-  --ground: #18191b;
-  --surface: #202124;
-  --surface-sunk: #141516;
-  --ink: #ecebe6;
-  --ink-muted: #aaa79f;
-  --ink-faint: #8b8880;
-  --line: #34363a;
-  --line-soft: #2a2c2f;
-  --focus: #d2a656;
-
-  --felt: #0f1011;
-  --felt-raised: #1b1c1e;
-  --felt-seam: #26272a;
-
-  --ok: #6fcf98;
-  --ok-soft: #1c3327;
-  --warn: #e3b55a;
-  --warn-soft: #3a2f17;
-  --danger: #f08a77;
-  --danger-soft: #3d201b;
-  --info: #8db8ef;
-  --info-soft: #1d2b3e;
-
+.dark {
+  --paper: oklch(0.205 0.036 262);
+  --paper-2: oklch(0.238 0.04 262);
+  --paper-3: oklch(0.285 0.045 262);
+  --ink: oklch(0.95 0.01 262);
+  --ink-2: oklch(0.8 0.025 262);
+  --ink-3: oklch(0.7 0.03 262);
+  --line: oklch(0.335 0.042 262);
+  --rule: oklch(0.33 0.045 270);
+  --coral: oklch(0.75 0.14 40);
+  --coral-strong: oklch(0.79 0.13 42);
+  --coral-ink: oklch(0.8 0.12 44);
+  --coral-wash: oklch(0.3 0.05 40);
+  --on-coral: oklch(0.21 0.04 262);
+  --cover: oklch(0.165 0.032 262);
+  --cover-2: oklch(0.22 0.04 262);
+  --on-cover: oklch(0.95 0.01 262);
+  --ok: oklch(0.75 0.12 155);
+  --ok-wash: oklch(0.3 0.05 155);
+  --warn: oklch(0.8 0.12 80);
+  --warn-wash: oklch(0.31 0.05 80);
+  --danger: oklch(0.72 0.15 25);
+  --danger-wash: oklch(0.3 0.06 25);
+  --shadow: 225 60% 4%;
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-board: "Archivo Narrow", "Archivo Variable", ui-sans-serif, sans-serif;
-
-  --color-ground: var(--ground);
-  --color-surface: var(--surface);
-  --color-surface-sunk: var(--surface-sunk);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
   --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-faint: var(--ink-faint);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
   --color-line: var(--line);
-  --color-line-soft: var(--line-soft);
-  --color-focus: var(--focus);
-
-  --color-felt: var(--felt);
-  --color-felt-raised: var(--felt-raised);
-  --color-felt-seam: var(--felt-seam);
-  --color-letter: var(--letter);
-  --color-letter-muted: var(--letter-muted);
-  --color-brass: var(--brass);
-  --color-brass-bright: var(--brass-bright);
-
+  --color-rule: var(--rule);
+  --color-coral: var(--coral);
+  --color-coral-strong: var(--coral-strong);
+  --color-coral-ink: var(--coral-ink);
+  --color-coral-wash: var(--coral-wash);
+  --color-on-coral: var(--on-coral);
+  --color-cover: var(--cover);
+  --color-cover-2: var(--cover-2);
+  --color-on-cover: var(--on-cover);
   --color-ok: var(--ok);
-  --color-ok-soft: var(--ok-soft);
+  --color-ok-wash: var(--ok-wash);
   --color-warn: var(--warn);
-  --color-warn-soft: var(--warn-soft);
+  --color-warn-wash: var(--warn-wash);
   --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --color-info: var(--info);
-  --color-info-soft: var(--info-soft);
+  --color-danger-wash: var(--danger-wash);
 
-  --radius-board: 4px;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Be Vietnam Pro", sans-serif;
+
+  --radius-paper: 6px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/*
+ * Base and component rules live in Tailwind layers so utilities always win over them
+ * (an unlayered rule beats every utility, whatever its specificity).
+ */
 @layer base {
   html {
-    background: var(--ground);
+    background: var(--paper);
     color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: 15px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   body {
-    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--brass) 38%, transparent);
-    color: inherit;
+    background: var(--coral);
+    color: var(--on-coral);
   }
 
   :focus-visible {
-    outline: 2px solid var(--focus);
+    outline: 2px solid var(--coral);
     outline-offset: 2px;
+    border-radius: 4px;
   }
 
   input,
   textarea {
-    caret-color: var(--brass);
+    caret-color: var(--coral);
+  }
+
+  /* Text fields draw their own focus ring; drop the generic outline so it never doubles up. */
+  input:not([type="checkbox"], [type="radio"], [type="range"]):focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
   }
 
   a {
-    text-underline-offset: 3px;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
+    scrollbar-color: var(--rule) transparent;
   }
 }
 
-/* Grooved felt: fine horizontal channels, as on a letterboard. */
-.felt {
-  background-color: var(--felt);
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgb(255 255 255 / 0.035) 0 1px,
-    transparent 1px 7px
-  );
-  scrollbar-color: var(--felt-seam) transparent;
-}
-
-/* Signature move: letters press into the board one by one. */
-@keyframes letter-press {
-  from {
-    opacity: 0;
-    transform: translateY(-0.35em) scale(1.08);
-    filter: blur(2px);
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
 
-.letter-press {
-  display: inline-block;
-  animation: letter-press 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--i) * 28ms);
+  /* The navy cover: sidebar and the login's left half. */
+  .vinyl {
+    background-color: var(--cover);
+    background-image:
+      radial-gradient(circle at 20% 10%, oklch(1 0 0 / 0.06), transparent 50%),
+      repeating-linear-gradient(45deg, oklch(1 0 0 / 0.015) 0 2px, transparent 2px 4px);
+    scrollbar-color: oklch(1 0 0 / 0.18) transparent;
+  }
+
+  .paper-shadow {
+    box-shadow:
+      0 1px 2px hsl(var(--shadow) / 0.08),
+      0 8px 24px -8px hsl(var(--shadow) / 0.18);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .letter-press {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

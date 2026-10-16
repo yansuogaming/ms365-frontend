@@ -14,8 +14,6 @@ export interface NavItem {
 export interface NavGroup {
   id: string
   label: string
-  /** Wayfinding tick colour, applied wherever this group's pages appear. */
-  tick: string
   items: NavItem[]
 }
 
@@ -23,7 +21,6 @@ export const navigation: NavGroup[] = [
   {
     id: 'quick',
     label: 'Quick actions',
-    tick: '#b48a3c',
     items: [
       { label: 'Create mail', path: '/quick/create-mail', icon: Mail },
       { label: 'Check code', path: '/quick/check-code', icon: SquareCheck },
@@ -36,13 +33,11 @@ export const navigation: NavGroup[] = [
   {
     id: 'overview',
     label: 'Overview',
-    tick: '#f2f1ec',
     items: [{ label: 'Dashboard', path: '/dashboard', icon: LayoutGrid }],
   },
   {
     id: 'identity',
     label: 'Identity',
-    tick: '#5b93d8',
     items: [
       { label: 'Users', path: '/identity/users', icon: Users },
       { label: 'Password reset', path: '/identity/password-reset', icon: KeyRound },
@@ -52,7 +47,6 @@ export const navigation: NavGroup[] = [
   {
     id: 'billing',
     label: 'Billing',
-    tick: '#4fae7b',
     items: [
       { label: 'Product', path: '/billing/products', icon: Package },
       { label: 'Licenses', path: '/billing/licenses', icon: BadgeCheck },
@@ -63,7 +57,6 @@ export const navigation: NavGroup[] = [
   {
     id: 'security',
     label: 'Security',
-    tick: '#e0644f',
     items: [
       { label: 'Conditional Access', path: '/security/conditional-access', icon: Shield },
       { label: 'Domains', path: '/security/domains', icon: Globe },
@@ -74,7 +67,6 @@ export const navigation: NavGroup[] = [
   {
     id: 'devices',
     label: 'Devices',
-    tick: '#a585e0',
     items: [
       { label: 'Intune Devices', path: '/devices/intune', icon: Smartphone },
       { label: 'Windows 365', path: '/devices/windows-365', icon: Monitor },
@@ -83,7 +75,6 @@ export const navigation: NavGroup[] = [
   {
     id: 'admin',
     label: 'Admin 365',
-    tick: '#3fb8b0',
     items: [
       { label: 'Exchange Online', path: '/admin/exchange', icon: Mail },
       { label: 'SharePoint', path: '/admin/sharepoint', icon: Globe },
