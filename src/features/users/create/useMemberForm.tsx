@@ -8,7 +8,7 @@ import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Select } from '@/components/ui/Select'
 import { notify } from '@/components/ui/Toaster'
 import { countryOptions } from '@/lib/countries'
-import { generatePassword, generateUsername, passwordStyles, type PasswordStyle } from '@/lib/random'
+import { generatePassword, generateUsername, passwordProblem, passwordStyles, type PasswordStyle } from '@/lib/random'
 import { useGroupOptions, useOrgProfile, useRoleDefinitions, usersApi, useSkus, useUserMutation } from '../api'
 import { CredentialResults } from '../dialogs/CredentialResults'
 import type { CreateUserRequest } from '../types'
@@ -17,13 +17,6 @@ type NameMode = 'fixed' | 'username' | 'auto'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const LOCAL = /^[a-z0-9][a-z0-9._'-]{0,63}$/i
-
-/** Entra requires 8+ characters and 3 of: upper, lower, digit, symbol. */
-function passwordProblem(p: string) {
-  if (p.length < 8) return 'At least 8 characters.'
-  const kinds = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/].filter((r) => r.test(p)).length
-  return kinds < 3 ? 'Use 3 of: capital, lower case, number, symbol.' : null
-}
 
 function randomDisplayName() {
   return `User ${generateUsername(5).toUpperCase()}`
@@ -241,7 +234,8 @@ export function useMemberForm(onCreated: () => void) {
             placeholder="Select groups…"
             emptyText="No groups found."
             loading={groups.isPending}
-            options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.displayName }))}
+            options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.displayName, hint: g.kind }))}
+            searchPlaceholder="Search name or group id…"
           />
           <Field
             label="Send credentials to email (optional)"

@@ -22,6 +22,8 @@ interface MultiSelectProps {
   emptyText?: string
   loading?: boolean
   className?: string
+  /** Search box text; the search also matches option values (e.g. an id). */
+  searchPlaceholder?: string
 }
 
 /**
@@ -39,6 +41,7 @@ export function MultiSelect({
   emptyText = 'Nothing to choose from.',
   loading = false,
   className = '',
+  searchPlaceholder = 'Filter…',
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -49,7 +52,7 @@ export function MultiSelect({
 
   const picked = new Set(value)
   const q = query.trim().toLowerCase()
-  const visible = options.filter((o) => !q || o.label.toLowerCase().includes(q))
+  const visible = options.filter((o) => !q || o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q))
   const selectedLabels = options.filter((o) => picked.has(o.value)).map((o) => o.label)
 
   function toggle(v: string) {
@@ -121,7 +124,7 @@ export function MultiSelect({
                   setQuery(e.target.value)
                   setActive(0)
                 }}
-                placeholder="Filter…"
+                placeholder={searchPlaceholder}
                 className="h-9 w-full rounded-md bg-paper-2 pr-3 pl-8 text-sm outline-none"
               />
             </label>

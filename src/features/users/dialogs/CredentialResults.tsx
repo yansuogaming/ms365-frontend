@@ -2,6 +2,7 @@ import { Check, Copy, Download, TriangleAlert } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDateTime } from '@/components/ui/admin'
+import { Pagination } from '@/components/ui/Pagination'
 import { notify } from '@/components/ui/Toaster'
 import type { CredentialResult } from '../types'
 
@@ -23,6 +24,10 @@ function downloadCsv(results: CredentialResult[], kind: 'password' | 'pass') {
 /** One-time display of generated passwords or passes. Nothing here is persisted. */
 export function CredentialResults({ results, kind, note }: { results: CredentialResult[]; kind: 'password' | 'pass'; note?: ReactNode }) {
   const [copied, setCopied] = useState(false)
+  // long runs (bulk create) are paged; Copy all and the CSV always cover every row
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const shown = results.slice((page - 1) * pageSize, page * pageSize)
   const ok = results.filter((r) => r.secret)
   const label = kind === 'pass' ? 'TAP' : 'Password'
 
@@ -59,7 +64,7 @@ export function CredentialResults({ results, kind, note }: { results: Credential
         </p>
       )}
 
-      <div className="max-h-72 overflow-auto overscroll-contain rounded-[var(--radius-paper)] border border-line">
+      <div className="overflow-x-auto rounded-[var(--radius-paper)] border border-line">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-paper-2 text-left text-xs font-semibold tracking-wide text-ink-3 uppercase">
             <tr>
@@ -69,10 +74,10 @@ export function CredentialResults({ results, kind, note }: { results: Credential
             </tr>
           </thead>
           <tbody>
-            {results.map((r) =>
+            {shown.map((r) =>
               r.secret ? (
                 <tr key={r.upn} className="border-t border-line">
-                  <td className="max-w-[14rem] truncate px-3 py-2.5 text-ink-2" title={r.upn}>
+                  <td className="max-w-[9rem] truncate px-3 py-2.5 text-ink-2 sm:max-w-[14rem]" title={r.upn}>
                     {r.upn}
                   </td>
                   <td className="px-3 py-2.5">
@@ -91,6 +96,20 @@ export function CredentialResults({ results, kind, note }: { results: Credential
           </tbody>
         </table>
       </div>
+      {results.length > 10 && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={results.length}
+          onPageChange={setPage}
+          onPageSizeChange={(n) => {
+            setPageSize(n)
+            setPage(1)
+          }}
+          pageSizes={[10, 25, 50]}
+          itemLabel="accounts"
+        />
+      )}
     </div>
   )
 }

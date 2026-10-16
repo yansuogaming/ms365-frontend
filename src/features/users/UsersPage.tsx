@@ -1,6 +1,5 @@
 import { Plus, Trash2, UsersRound } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { useMemo, useRef, useState } from 'react'
 import { buttonClass } from '@/components/ui/Button'
 import { ConfirmDialog, errorText, formatNumber, PageHeader } from '@/components/ui/admin'
 import { Pagination } from '@/components/ui/Pagination'
@@ -9,7 +8,7 @@ import { EmptyState, ErrorState, SkeletonRows } from '@/components/ui/StateViews
 import { notify } from '@/components/ui/Toaster'
 import { useSession } from '@/features/auth/useSession'
 import { useListParams } from '@/lib/hooks/useListParams'
-import { reportBulk, usersApi, useSkus, useUserList, useUserMutation } from './api'
+import { reportBulk, userChangeCount, usersApi, useSkus, useUserList, useUserMutation } from './api'
 import { BulkBar, type BulkAction } from './components/BulkBar'
 import { UsersTable } from './components/UsersTable'
 import { UsersToolbar, type ToolAction } from './components/UsersToolbar'
@@ -20,7 +19,9 @@ import { who } from './dialogs/FormDialog'
 import { RenameDialog } from './dialogs/RenameDialog'
 import { LanguageDialog } from './dialogs/SettingDialogs'
 import { TwoFactorDialog } from './dialogs/TwoFactorDialog'
+import { BulkCreateDialog } from './bulk-create/BulkCreateDialog'
 import { CreateUserDialog } from './create/CreateUserDialog'
+import { DeletedUsersDialog } from './deleted/DeletedUsersDialog'
 import { EditUserDialog } from './edit/EditUserDialog'
 import { LicenseUsageDialog } from './dialogs/LicenseUsageDialog'
 import { OrgProfileDialog } from './dialogs/OrgProfileDialog'
@@ -29,14 +30,12 @@ import type { CredentialResult, UserListQuery, UserRow, UserSort } from './types
 
 const DEFAULTS = { search: '', status: 'all', license: '', role: '', sort: 'createdAt:desc' }
 
-type Dialog = BulkAction | Exclude<ToolAction, 'exportTxt'> | 'create' | null
+type Dialog = BulkAction | Exclude<ToolAction, 'exportTxt'> | 'create' | 'bulkCreate' | 'deleted' | null
 
 /** Confirm-only bulk actions: wording and API call. */
 const simple = {
   block: { title: 'Block sign-in', verb: 'Blocked', body: 'They are signed out and cannot sign in until unblocked.', run: (ids: string[]) => usersApi.block(ids, true), danger: true },
   unblock: { title: 'Unblock sign-in', verb: 'Unblocked', body: 'They can sign in again straight away.', run: (ids: string[]) => usersApi.block(ids, false), danger: false },
-  forcePasswordChange: { title: 'Force password change', verb: 'Flagged', body: 'They must choose a new password at their next sign-in.', run: usersApi.forcePasswordChange, danger: false },
-  revokeSessions: { title: 'Force re-auth', verb: 'Signed out', body: 'Revokes refresh tokens and browser sessions on every device. They must sign in again.', run: usersApi.revokeSessions, danger: false },
   delete: { title: 'Delete', verb: 'Deleted', body: 'Deleted users can be restored for 30 days under Deleted users. Licenses are freed right away.', run: usersApi.remove, danger: true },
 } as const
 
@@ -64,6 +63,14 @@ export function UsersPage() {
   const closeAndClear = () => {
     setDialog(null)
     clear()
+  }
+
+  // Selection is cleared only after an action actually ran. Closing a dialog with X, Cancel or Esc keeps it,
+  // but a dialog that stays open after saving (Edit tabs, 2FA, Reset password) clears it on close.
+  const changesAtOpen = useRef(0)
+  const closeSelection = () => {
+    setDialog(null)
+    if (userChangeCount() > changesAtOpen.current) clear()
   }
 
   const rows = users.data?.items ?? []
@@ -115,9 +122,45 @@ export function UsersPage() {
       notify.dismiss(toastId) // the request error itself is toasted globally
     }
   }
+  /** Confirmed, then run in the background: a toast shows progress and is replaced by the tally. */
+  const quick = {
+    revokeSessions: {
+      running: 'Revoking sessions for',
+      title: 'Revoke sessions',
+      confirm: 'Force re-auth',
+      body: 'Revokes refresh tokens and browser sessions on every device. They must sign in again.',
+      run: usersApi.revokeSessions,
+    },
+    forcePasswordChange: {
+      running: 'Forcing a password change for',
+      title: 'Force password change',
+      confirm: 'Force password change',
+      body: 'They keep their current password but must choose a new one at their next sign-in.',
+      run: usersApi.forcePasswordChange,
+    },
+  } as const
+  const quickRun = useUserMutation(({ action, ids }: { action: keyof typeof quick; ids: string[] }) => quick[action].run(ids))
+  async function runQuick(action: keyof typeof quick) {
+    if (quickRun.isPending) return
+    const q = quick[action]
+    const n = chosen.length
+    const toastId = notify.loading(`${q.running} ${n} user${n === 1 ? '' : 's'}…`)
+    try {
+      const r = await quickRun.mutateAsync({ action, ids: chosen.map((u) => u.id) })
+      const title = `${q.title}: ${r.succeeded}/${r.succeeded + r.failed.length} succeeded`
+      const description = r.failed.length ? r.failed.slice(0, 3).map((f) => `${f.label}: ${f.error}`).join(' · ') : undefined
+      if (r.failed.length === 0) notify.success(title, { id: toastId })
+      else if (r.succeeded > 0) notify.warning(title, { id: toastId, description })
+      else notify.error(title, { id: toastId, description })
+      if (r.succeeded > 0) clear()
+    } catch {
+      notify.dismiss(toastId) // the request error itself is toasted globally
+    }
+  }
+
   function onBulk(action: BulkAction) {
-    if (action === 'tap') runTap()
-    else setDialog(action)
+    changesAtOpen.current = userChangeCount()
+    setDialog(action)
   }
 
   const simpleAction = dialog && dialog in simple ? simple[dialog as keyof typeof simple] : null
@@ -139,14 +182,14 @@ export function UsersPage() {
         }
         actions={
           <>
-            <Link to="deleted" aria-label="Deleted users" title="Deleted users" className={buttonClass('ghost', 'sm', 'px-3 sm:px-4')}>
+            <button type="button" onClick={() => setDialog('deleted')} aria-label="Deleted users" title="Deleted users" className={buttonClass('ghost', 'sm', 'px-3 sm:px-4')}>
               <Trash2 className="size-4" aria-hidden />
               <span className="hidden sm:inline">Deleted users</span>
-            </Link>
-            <Link to="bulk-create" className={buttonClass('secondary', 'sm')}>
+            </button>
+            <button type="button" onClick={() => setDialog('bulkCreate')} className={buttonClass('secondary', 'sm')}>
               <UsersRound className="size-4" aria-hidden />
               Bulk create
-            </Link>
+            </button>
             <button type="button" onClick={() => setDialog('create')} className={buttonClass('primary', 'sm')}>
               <Plus className="size-4" aria-hidden />
               New user
@@ -201,6 +244,26 @@ export function UsersPage() {
       </Panel>
 
       {/* dialogs */}
+      {dialog === 'tap' && (
+        <ConfirmDialog
+          open
+          onClose={close}
+          onConfirm={() => void runTap()}
+          title={`Generate TAP: ${who(chosen.map((u) => u.displayName))}?`}
+          body={`Creates a one-time Temporary Access Pass, valid for ${TAP_DEFAULT_MINUTES} minutes. The passes are shown once, with a CSV download. For another lifetime, use 2FA.`}
+          confirmLabel="Generate TAP"
+        />
+      )}
+      {(dialog === 'revokeSessions' || dialog === 'forcePasswordChange') && (
+        <ConfirmDialog
+          open
+          onClose={close}
+          onConfirm={() => void runQuick(dialog)}
+          title={`${quick[dialog].confirm}: ${who(chosen.map((u) => u.displayName))}?`}
+          body={quick[dialog].body}
+          confirmLabel={quick[dialog].confirm}
+        />
+      )}
       {simpleAction && (
         <ConfirmDialog
           open
@@ -215,12 +278,12 @@ export function UsersPage() {
           danger={simpleAction.danger}
         />
       )}
-      {dialog === 'edit' && chosen.length === 1 && <EditUserDialog user={chosen[0]} onClose={closeAndClear} />}
+      {dialog === 'edit' && chosen.length === 1 && <EditUserDialog user={chosen[0]} onClose={closeSelection} />}
       {dialog === 'edit' && chosen.length > 1 && <BulkEditDialog users={chosen} onClose={close} onDone={closeAndClear} />}
       {dialog === 'rename' && chosen.length > 0 && <RenameDialog users={chosen} onClose={close} onDone={closeAndClear} />}
-      {dialog === 'twoFactor' && chosen.length > 0 && <TwoFactorDialog users={chosen} onClose={closeAndClear} onDone={() => {}} />}
+      {dialog === 'twoFactor' && chosen.length > 0 && <TwoFactorDialog users={chosen} onClose={closeSelection} onDone={() => {}} />}
       {dialog === 'language' && <LanguageDialog users={chosen} onClose={close} onDone={closeAndClear} />}
-      {dialog === 'resetPassword' && <ResetPasswordDialog users={chosen} onClose={closeAndClear} onDone={() => {}} />}
+      {dialog === 'resetPassword' && <ResetPasswordDialog users={chosen} onClose={closeSelection} onDone={() => {}} />}
       {passes && (
         <TapResultDialog
           results={passes}
@@ -235,6 +298,8 @@ export function UsersPage() {
       {dialog === 'orgProfile' && <OrgProfileDialog onClose={close} />}
       {dialog === 'deleteTxt' && <DeleteFromTxtDialog onClose={close} />}
       {dialog === 'create' && <CreateUserDialog onClose={close} />}
+      {dialog === 'bulkCreate' && <BulkCreateDialog onClose={close} />}
+      {dialog === 'deleted' && <DeletedUsersDialog onClose={close} />}
     </div>
   )
 }

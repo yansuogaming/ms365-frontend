@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { notify } from '@/components/ui/Toaster'
 import { apiDownload, apiFetch } from '@/lib/api/client'
 import type { BulkResult, Page } from '@/lib/api/types'
-import type { BulkEditRequest, CreateUserRequest, CredentialResult, GroupOption, InviteGuestRequest, InviteGuestResult, MembershipChange, DeletedTarget, DeletedUser, DirectoryRole, OrgProfile, OrgUpdate, RenameChange, RoleDefinition, SkuUsage, UsageScanJob, UsageScanRequest, UserDetail, UserEdit, UserListQuery, UserRow } from './types'
+import type { BulkCreateRequest, BulkEditRequest, CreateUserRequest, CredentialResult, GroupOption, InviteGuestRequest, InviteGuestResult, MembershipChange, DeletedTarget, DeletedUser, DirectoryRole, OrgProfile, OrgUpdate, RenameChange, RoleDefinition, SkuUsage, UsageScanJob, UsageScanRequest, UserDetail, UserEdit, UserListQuery, UserRow } from './types'
 
 function listParams(q: Omit<UserListQuery, 'page' | 'pageSize'> & Partial<Pick<UserListQuery, 'page' | 'pageSize'>>) {
   const p = new URLSearchParams()
@@ -27,6 +27,7 @@ export const usersApi = {
   updateOrg: (body: OrgUpdate) => apiFetch<{ organization: OrgProfile; usersUpdated?: number }>('/organization', { method: 'PATCH', body: { ...body } }),
   exportTxt: (q: Omit<UserListQuery, 'page' | 'pageSize'>) => apiDownload(`/users/export?format=txt&${listParams(q)}`, 'users.txt'),
 
+  bulkCreate: (body: BulkCreateRequest) => apiFetch<{ results: CredentialResult[] }>('/users/bulk-create', { method: 'POST', body: { ...body } }),
   create: (body: CreateUserRequest) => apiFetch<UserRow>('/users', { method: 'POST', body: { ...body } }),
   inviteGuest: (body: InviteGuestRequest) => apiFetch<InviteGuestResult>('/users/invite', { method: 'POST', body: { ...body } }),
   groupOptions: () => apiFetch<GroupOption[]>('/groups/options'),
@@ -44,7 +45,7 @@ export const usersApi = {
   block: (ids: string[], blocked: boolean) => bulk('block', { ids, blocked }),
   revokeSessions: (ids: string[]) => bulk('revoke-sessions', { ids }),
   forcePasswordChange: (ids: string[]) => bulk('force-password-change', { ids }),
-  setLanguage: (ids: string[], language: string) => bulk('language', { ids, language }),
+  setLanguage: (ids: string[], language: string, includeMailbox: boolean) => bulk('language', { ids, language, includeMailbox }),
   edit: (req: BulkEditRequest) => bulk('edit', { ...req }),
   renameMany: (changes: RenameChange[]) => bulk('rename', { changes }),
   setMfaPhone: (entries: { id: string; phoneNumber: string }[]) => bulk('mfa/phone', { entries }),
@@ -60,8 +61,9 @@ export const usersApi = {
   startUsageScan: (req: UsageScanRequest) => apiFetch<{ jobId: string }>('/licenses/usage/scan', { method: 'POST', body: { ...req } }),
   usageScan: (jobId: string) => apiFetch<UsageScanJob>(`/licenses/usage/scan/${jobId}`),
 
-  resetPassword: (ids: string[], requireChange: boolean) =>
-    apiFetch<{ results: CredentialResult[] }>('/users/bulk/reset-password', { method: 'POST', body: { ids, requireChange } }),
+  /** Without `password` the server generates a strong random one per user; with it, every user gets that one. */
+  resetPassword: (ids: string[], requireChange: boolean, password?: string) =>
+    apiFetch<{ results: CredentialResult[] }>('/users/bulk/reset-password', { method: 'POST', body: { ids, requireChange, ...(password ? { password } : {}) } }),
   createTap: (ids: string[], lifetimeMinutes: number, oneTime: boolean) =>
     apiFetch<{ results: CredentialResult[] }>('/users/bulk/tap', { method: 'POST', body: { ids, lifetimeMinutes, oneTime } }),
 }
@@ -90,12 +92,19 @@ export function reportBulk(verb: string, r: BulkResult) {
   else notify.error(`Nothing was ${verb.toLowerCase()}`, { description: r.failed.slice(0, 3).map((f) => `${f.label}: ${f.error}`).join(' · ') })
 }
 
+/** Bumped on every successful user change, so a page can tell whether a dialog actually did something. */
+let changes = 0
+export const userChangeCount = () => changes
+
 /** Any change to users: run it, report it, refresh every user list. */
 export function useUserMutation<V, R>(fn: (v: V) => Promise<R>, onDone?: (r: R, v: V) => void) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: fn,
-    onSuccess: (r, v) => onDone?.(r, v),
+    onSuccess: (r, v) => {
+      changes++
+      onDone?.(r, v)
+    },
     onSettled: () => qc.invalidateQueries({ queryKey: keys.all }),
   })
 }

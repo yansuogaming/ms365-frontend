@@ -216,7 +216,7 @@ Each takes `{ "ids": string[], … }` and returns a `BulkResult`. The UI always 
 | `POST /users/bulk/block` | `"blocked": boolean` | Block or unblock sign-in |
 | `POST /users/bulk/revoke-sessions` | none | Revoke refresh tokens and sessions |
 | `POST /users/bulk/force-password-change` | none | Require a new password at next sign-in |
-| `POST /users/bulk/language` | `"language": "vi-VN"` | Set `preferredLanguage` |
+| `POST /users/bulk/language` | `"language": "sv-SE", "includeMailbox": true` | Set `preferredLanguage` (portal and apps). With `includeMailbox`, also set the Exchange mailbox language (Outlook folder names such as Inbox/Sent are localized); a user without a mailbox counts as failed for that part, with the reason |
 | `POST /users/bulk/edit` | see below | Roles and shared fields |
 | `POST /users/bulk/rename` | see below (no `ids`) | Display names / usernames |
 | `POST /users/bulk/mfa/phone` | `"entries": [{ "id", "phoneNumber" }]` instead of `ids` | Add an SMS phone method. `phoneNumber` is already in the Graph format `+{country code} {number}`, e.g. `+84 901234567` (the UI picks the country and drops the trunk 0) |
@@ -257,7 +257,7 @@ Body `{ "upns": string[] }`. The UI reads the TXT file on the operator's device 
 
 | Endpoint | Body |
 |---|---|
-| `POST /users/bulk/reset-password` | `{ "ids": string[], "requireChange": boolean }` |
+| `POST /users/bulk/reset-password` | `{ "ids": string[], "requireChange": boolean, "password"?: string }`. No `password`: generate a strong random password per user (default). With `password`: set that same password on every user (already checked in the UI for 8+ chars and 3 of 4 character kinds; Graph may still reject it, report that per user). Results echo the password that was set. |
 | `POST /users/bulk/tap` | `{ "ids": string[], "lifetimeMinutes": 60, "oneTime": true }` |
 
 Both return:
@@ -298,7 +298,7 @@ Takes the same filters as `GET /users`, without paging. Returns `text/plain`, on
 Body `{ "email": "person@partner.com", "displayName"?: "…", "sendInvitationEmail": true }`. Returns `{ "user": UserRow, "inviteRedeemUrl": "…" }`. This is a Graph B2B invitation and needs `User.Invite.All`.
 
 ### Groups: `GET /groups/options`
-Returns `[{ "id", "displayName" }]` for the group pickers.
+Returns `[{ "id", "displayName", "kind"? }]` for the group pickers. `kind` is shown next to the name: `"Microsoft 365"`, `"Security"`, `"Mail-enabled security"` or `"Distribution"`. The picker searches the name and the id.
 
 ### One user (Edit user dialog)
 
@@ -360,7 +360,7 @@ Returns `{ "jobId": "…" }`.
 `GET /directory/role-definitions` should list the common admin roles first (Global, User, Security, Conditional Access, Privileged Authentication, Helpdesk, Billing, Password, Application, Privileged Role, Exchange, SharePoint, Skype for Business), because the Roles filter shows them in the order returned.
 
 ### Deleted users
-Soft-deleted accounts (Entra keeps them for 30 days). `POST /users/bulk/delete` and `POST /users/bulk/delete-by-upn` move users here.
+Shown in a dialog opened from the Users page (no route of its own). Soft-deleted accounts (Entra keeps them for 30 days). `POST /users/bulk/delete` and `POST /users/bulk/delete-by-upn` move users here.
 
 #### `GET /users/deleted`
 Query: `page`, `pageSize`, `search` (name or UPN). Returns `Page<DeletedUser>`:
@@ -376,5 +376,29 @@ Body: either `{ "ids": string[] }`, or `{ "all": true, "search": "…" }` for "R
 
 Purge is irreversible. The UI asks for confirmation, and for "all" the operator must type DELETE.
 
-### Planned screens
-`/identity/users/bulk-create` exists as a route, but its screen is not built yet. Their API contract will be added here when they are.
+### Bulk create: `POST /users/bulk-create`
+Opened as a dialog from the Users page. Body:
+
+```json
+{
+  "prefix": "user",
+  "count": 5,
+  "domain": "contoso.onmicrosoft.com",
+  "randomUsernames": false,
+  "displayName": { "mode": "fixed", "value": "Class 8A" },
+  "password": "Tsg78374",
+  "randomPasswordPerUser": false,
+  "forceChangePassword": false,
+  "usageLocation": "US",
+  "skuIds": ["…"],
+  "groupIds": ["…"]
+}
+```
+
+- `count`: 1 to 500.
+- Usernames: `prefix` + a running number (`user1`, `user2`, …), skipping numbers whose UPN is already taken. With `randomUsernames: true`, the server makes `firstname.lastname` style names instead and ignores `prefix`; still unique.
+- `displayName.mode`: `fixed` uses `value` for everyone; `username` uses each user's username; `auto` generates a name per user (`value` omitted).
+- `password` is omitted when `randomPasswordPerUser` is true; the server then generates a strong, different password for each user.
+- Licenses that run out of seats part-way: create the user anyway and report it as an error on that row (e.g. `"Created, but no free seats for Office 365 A1"`), so the operator knows.
+
+Returns `{ "results": CredentialResult[] }` (same shape as reset-password): one row per requested account, `secret` = the password, or `error`. The UI shows them once, with Copy all and CSV, and keeps the last run in memory (not storage) so "Recover" can show it again in the same tab.

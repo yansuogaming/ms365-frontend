@@ -1,19 +1,15 @@
-import { ArrowLeft, RotateCcw, Trash2 } from 'lucide-react'
+import { RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
-import { ConfirmDialog, formatDate, formatDateTime, formatNumber, PageHeader, Tag } from '@/components/ui/admin'
+import { ConfirmDialog, formatDate, formatDateTime, formatNumber, Modal, Tag } from '@/components/ui/admin'
 import { Field } from '@/components/ui/Field'
 import { Pagination } from '@/components/ui/Pagination'
-import { Panel } from '@/components/ui/Panel'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/ui/StateViews'
-import { useListParams } from '@/lib/hooks/useListParams'
 import { reportBulk, useDeletedUsers, usersApi, useUserMutation } from '../api'
 import { FormDialog } from '../dialogs/FormDialog'
 import type { DeletedTarget, DeletedUser } from '../types'
 
-const DEFAULTS = { search: '' }
 const RETENTION_DAYS = 30
 const DAY = 86_400_000
 
@@ -32,10 +28,12 @@ type Pending =
   | { kind: 'restoreAll' | 'purgeAll' }
   | null
 
-export function DeletedUsersPage() {
-  const list = useListParams(DEFAULTS)
-  const search = list.values.search
-  const deleted = useDeletedUsers({ page: list.page, pageSize: list.pageSize, search })
+/** Deleted users (restorable for 30 days), opened from the Users page. */
+export function DeletedUsersDialog({ onClose }: { onClose: () => void }) {
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const deleted = useDeletedUsers({ page, pageSize, search })
   const [pending, setPending] = useState<Pending>(null)
   const [typed, setTyped] = useState('')
 
@@ -52,47 +50,43 @@ export function DeletedUsersPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <Link to="/identity/users" className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-coral-ink">
-        <ArrowLeft className="size-4" aria-hidden />
-        Active users
-      </Link>
-
-      <PageHeader
-        title="Deleted users"
-        description={`Deleted accounts stay restorable for ${RETENTION_DAYS} days, then Microsoft removes them for good.`}
-        actions={
-          <>
+    <Modal
+      open
+      onClose={onClose}
+      title="Deleted users"
+      description={`Deleted accounts stay restorable for ${RETENTION_DAYS} days, then Microsoft removes them for good.`}
+      size="wide"
+    >
+      <div className="-mx-6 -my-5 flex min-h-full flex-col">
+        <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-4 sm:px-6">
+          <SearchInput
+            value={search}
+            onSearch={(s) => {
+              setSearch(s)
+              setPage(1)
+            }}
+            label="Search deleted users"
+            placeholder="Search name or UPN…"
+            className="w-full sm:max-w-80"
+          />
+          {deleted.data && (
+            <p className="text-sm text-ink-2">
+              <span className="tabular font-semibold text-ink">{formatNumber(total)}</span> {search ? `match “${search}”` : 'deleted'}
+            </p>
+          )}
+          <span className="flex w-full gap-2 sm:ml-auto sm:w-auto">
             <Button variant="secondary" size="sm" disabled={total === 0} onClick={() => setPending({ kind: 'restoreAll' })}>
               <RotateCcw className="size-4" aria-hidden />
               Restore all{total > 0 && ` (${formatNumber(total)})`}
             </Button>
             <Button variant="danger" size="sm" disabled={total === 0} onClick={() => setPending({ kind: 'purgeAll' })}>
               <Trash2 className="size-4" aria-hidden />
-              Delete all permanently{total > 0 && ` (${formatNumber(total)})`}
+              Delete all{total > 0 && ` (${formatNumber(total)})`}
             </Button>
-          </>
-        }
-      />
-
-      <Panel>
-        <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-4 sm:px-6">
-          <SearchInput value={search} onSearch={(s) => list.set({ search: s })} label="Search deleted users" placeholder="Search name or UPN…" className="w-full sm:max-w-80" />
-          {deleted.data && (
-            <p className="text-sm text-ink-2">
-              {search ? (
-                <>
-                  <span className="tabular font-semibold text-ink">{formatNumber(total)}</span> match “{search}”
-                </>
-              ) : (
-                <>
-                  <span className="tabular font-semibold text-ink">{formatNumber(total)}</span> deleted
-                </>
-              )}
-            </p>
-          )}
+          </span>
         </div>
 
+        <div className="flex-1">
         {deleted.isPending ? (
           <SkeletonRows rows={5} cols={4} />
         ) : deleted.isError && !deleted.data ? (
@@ -171,20 +165,25 @@ export function DeletedUsersPage() {
           </div>
         )}
 
+        </div>
+
         {deleted.data && total > 0 && (
-          <div className="border-t border-line px-4 py-4 sm:px-6">
+          <div className="sticky -bottom-5 border-t border-line bg-paper px-4 py-4 sm:px-6">
             <Pagination
-              page={list.page}
-              pageSize={list.pageSize}
+              page={page}
+              pageSize={pageSize}
               total={total}
-              onPageChange={list.setPage}
-              onPageSizeChange={list.setPageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
               itemLabel="deleted users"
               busy={deleted.isFetching}
             />
           </div>
         )}
-      </Panel>
+      </div>
 
       {/* single-user confirmations */}
       {pending?.kind === 'restore' && (
@@ -234,6 +233,6 @@ export function DeletedUsersPage() {
           <Field label='Type "DELETE" to confirm' value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" spellCheck={false} />
         </FormDialog>
       )}
-    </div>
+    </Modal>
   )
 }

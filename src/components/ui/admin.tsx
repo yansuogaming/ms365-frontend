@@ -59,7 +59,7 @@ export function Modal({
   /** Shown in the title row next to Close, e.g. a status badge. */
   aside?: ReactNode
   children?: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'wide' | 'xl'
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const opener = useRef<HTMLElement | null>(null)
@@ -78,7 +78,8 @@ export function Modal({
   }, [open])
 
   // xl is for tools that are almost a page (e.g. License usage): wide, and tall even when empty
-  const widths = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-7xl min-h-[min(46rem,calc(100dvh-2rem))]' }
+  // wide is for lists: room for a table, height follows the rows
+  const widths = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', wide: 'max-w-6xl', xl: 'max-w-7xl min-h-[min(46rem,calc(100dvh-2rem))]' }
 
   return (
     <dialog

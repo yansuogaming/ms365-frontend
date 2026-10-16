@@ -210,6 +210,27 @@ export interface InviteGuestResult {
 export interface GroupOption {
   id: string
   displayName: string
+  /** "Microsoft 365", "Security", "Mail-enabled security" or "Distribution"; shown next to the name. */
+  kind?: string
+}
+
+export type DisplayNameMode = 'fixed' | 'username' | 'auto'
+
+/** Bulk create: the server generates usernames (and passwords unless one is given) and returns them once. */
+export interface BulkCreateRequest {
+  /** Ignored when randomUsernames is true. */
+  prefix: string
+  count: number
+  domain: string
+  randomUsernames: boolean
+  displayName: { mode: DisplayNameMode; value?: string }
+  /** Omitted when randomPasswordPerUser is true. */
+  password?: string
+  randomPasswordPerUser: boolean
+  forceChangePassword: boolean
+  usageLocation: string
+  skuIds: string[]
+  groupIds: string[]
 }
 
 /** Add/remove sets for one user's licenses or groups. */

@@ -1,12 +1,15 @@
+import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { Select } from '@/components/ui/Select'
+import { generatePassword, passwordProblem, passwordStyles, type PasswordStyle } from '@/lib/random'
 import { notify } from '@/components/ui/Toaster'
 import { usersApi, useUserMutation } from '../api'
 import type { CredentialResult, UserRow } from '../types'
 import { CredentialResults } from './CredentialResults'
 import { Modal } from '@/components/ui/admin'
-import { FormDialog, who } from './FormDialog'
+import { FormDialog } from './FormDialog'
 
 interface Props {
   users: UserRow[]
@@ -28,25 +31,37 @@ const done = (onClose: () => void) => (
   </Button>
 )
 
+type ResetMode = 'random' | 'shared'
+
 export function ResetPasswordDialog({ users, onClose, onDone }: Props) {
-  const [requireChange, setRequireChange] = useState(true)
+  const n = users.length
+  const [mode, setMode] = useState<ResetMode>('random')
+  const [style, setStyle] = useState<PasswordStyle>('random12')
+  const [password, setPassword] = useState(() => generatePassword('random12'))
+  const [requireChange, setRequireChange] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [results, setResults] = useState<CredentialResult[] | null>(null)
+  const problem = mode === 'shared' ? passwordProblem(password) : null
   const run = useUserMutation(
-    () => usersApi.resetPassword(users.map((u) => u.id), requireChange),
+    () => usersApi.resetPassword(users.map((u) => u.id), requireChange, mode === 'shared' ? password : undefined),
     (r) => {
       setResults(r.results)
       summarize('Password reset', r.results)
       onDone()
     },
   )
+  const count = `${n} user${n === 1 ? '' : 's'}`
   return (
     <FormDialog
       open
       onClose={onClose}
-      title={`Reset password for ${who(users.map((u) => u.displayName))}`}
-      description={results ? undefined : 'A new random password is generated for each user.'}
-      submitLabel="Reset password"
-      onSubmit={() => run.mutate(undefined)}
+      title={`Reset password — ${count}`}
+      description={n === 1 ? users[0].upn : undefined}
+      submitLabel={`Reset ${count}`}
+      onSubmit={() => {
+        setTouched(true)
+        if (!problem) run.mutate(undefined)
+      }}
       busy={run.isPending}
       size="md"
       footer={results ? done(onClose) : undefined}
@@ -54,7 +69,58 @@ export function ResetPasswordDialog({ users, onClose, onDone }: Props) {
       {results ? (
         <CredentialResults results={results} kind="password" />
       ) : (
-        <Checkbox checked={requireChange} onChange={setRequireChange} label="Require a password change at next sign-in" />
+        <div className="flex flex-col gap-4">
+          <div role="radiogroup" aria-label="New password" className="flex flex-col gap-2.5">
+            {(
+              [
+                ['random', n === 1 ? 'Random strong password' : 'Random password for each user', '(strongest)'],
+                ['shared', n === 1 ? 'Set the password myself' : 'One shared password for everyone', ''],
+              ] as const
+            ).map(([value, label, note]) => (
+              <label key={value} className="flex cursor-pointer items-center gap-3 text-[0.95rem]">
+                <input type="radio" name="reset-mode" checked={mode === value} onChange={() => setMode(value)} className="size-4 shrink-0 accent-[var(--coral)]" />
+                <span>
+                  {label} {note && <span className="text-ink-3">{note}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {mode === 'shared' && (
+            <div className="flex flex-col gap-2 pl-7">
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto]">
+                <input
+                  aria-label="Password"
+                  aria-invalid={touched && Boolean(problem)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  spellCheck={false}
+                  className={`tabular h-11 w-full rounded-[var(--radius-paper)] border bg-paper px-3.5 text-ink outline-none transition-[border-color,box-shadow] focus:border-coral focus:shadow-[0_0_0_3px_color-mix(in_oklch,var(--coral)_25%,transparent)] ${
+                    touched && problem ? 'border-danger' : 'border-line hover:border-ink-3'
+                  }`}
+                />
+                <Select
+                  label="Password style"
+                  variant="field"
+                  value={style}
+                  onChange={(v) => {
+                    setStyle(v)
+                    setPassword(generatePassword(v))
+                  }}
+                  options={passwordStyles}
+                />
+                <Button type="button" variant="secondary" className="h-11" onClick={() => setPassword(generatePassword(style))}>
+                  <RefreshCw className="size-4" aria-hidden />
+                  Random
+                </Button>
+              </div>
+              {touched && problem ? <p className="text-sm text-danger">{problem}</p> : <p className="text-sm text-ink-3">At least 8 characters with 3 of: capital, lower case, number, symbol.</p>}
+            </div>
+          )}
+
+          <Checkbox checked={requireChange} onChange={setRequireChange} label="Require a password change at next sign-in" />
+        </div>
       )}
     </FormDialog>
   )
